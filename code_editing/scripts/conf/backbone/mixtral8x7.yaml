@@ -1,0 +1,9 @@
+defaults:
+  - base_hf
+  - _self_
+
+model_name: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+is_encoder_decoder: false
+model_kwargs:
+  load_in_4bit: true
+  attn_implementation: "flash_attention_2"

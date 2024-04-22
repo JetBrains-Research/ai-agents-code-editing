@@ -1,0 +1,4 @@
+# @package retrieval.embeddings
+defaults:
+  - openai
+  - _self_

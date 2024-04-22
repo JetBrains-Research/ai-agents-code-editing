@@ -1,0 +1,50 @@
+defaults:
+  - base_eval
+  - data_source: lca_code_editing
+  - extractor: full_file
+  - _self_
+
+input_path: test.csv  # override in the console
+metrics:
+  code_bert_score:
+    _target_: "code_editing.metrics.CodeBertScoreMetric"
+  code_bert_score_file:
+    _target_: "code_editing.metrics.CodeBertScoreFileMetric"
+  weak_format:
+    _target_: "code_editing.metrics.FormatAdherenceWeak"
+  is_not_nan:
+    _target_: "code_editing.metrics.SuccessfulGeneration"
+  valid_git_diff:
+    _target_: "code_editing.metrics.ValidGitDiff"
+  gpt4_eval:
+    _target_: "code_editing.metrics.GPT4EvaluationMetric"
+    limit_count: 10
+  chrf:
+    _target_: "code_editing.metrics.ChrfMetric"
+  chrf_file:
+    _target_: "code_editing.metrics.ChrfFileMetric"
+  exact_match:
+    _target_: "code_editing.metrics.ExactMatchMetric"
+  file_localization:
+    _target_: "code_editing.metrics.FileEditLocalizationMetric"
+  line_localization:
+    _target_: "code_editing.metrics.LineEditLocalizationMetric"
+  py_scope_localization:
+    _target_: "code_editing.metrics.PyScopeEditLocalizationMetric"
+  file_view_localization:
+    _target_: "code_editing.metrics.FileViewLocalizationMetric"
+  line_view_localization:
+    _target_: "code_editing.metrics.LineViewLocalizationMetric"
+  py_scope_view_localization:
+    _target_: "code_editing.metrics.PyScopeViewLocalizationMetric"
+  pass:
+    _target_: "code_editing.metrics.PassMetric"
+    cfg:
+      repos_folder: ???
+      username: ???
+      test_username: test_lca_code_editing
+      language: Python
+      token_gh: ???
+wandb:
+  project: "lca-code-editing-eval"
+  enable: true

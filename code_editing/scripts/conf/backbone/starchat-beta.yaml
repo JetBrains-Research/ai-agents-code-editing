@@ -1,0 +1,11 @@
+defaults:
+  - base_hf
+  - _self_
+
+model_name: "HuggingFaceH4/starchat-beta"
+is_encoder_decoder: false
+model_kwargs:
+  load_in_4bit: true
+  attn_implementation: "flash_attention_2"
+generation:
+  eos_token_id: 49155

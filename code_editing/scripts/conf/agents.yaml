@@ -1,0 +1,42 @@
+defaults:
+  - base_agent
+  - data_source: lca_code_editing
+  - llm: gpt-3.5-turbo-16k
+  - retrieval/embeddings: base_openai
+  - retrieval: faiss
+  # Graph
+  - graph: agent_only
+  ##  Tool configuration ##
+  # Backbone
+  - tools@tools.edit: edit
+  - backbone: openai-gpt-3.5-turbo
+  - backbone/prompt: simple_agent
+  # Other tools
+  - tools@tools.code_search: code_search
+  - tools@tools.view_file: view_file
+  - _self_
+
+chat_prompt:
+  owner_repo_commit: "hwchase17/openai-tools-agent"
+
+graph:
+  agent_prompt:
+    owner_repo_commit: "jbr-code-editing/agent"
+  agent_review_prompt:
+    owner_repo_commit: "jbr-code-editing/agent-reviewed"
+  review_prompt:
+    owner_repo_commit: "jbr-code-editing/review"
+
+retrieval:
+  embeddings:
+    model: "text-embedding-3-small"
+  splitter:
+    _target_: "langchain.text_splitter.RecursiveCharacterTextSplitter"
+    chunk_size: 256
+    chunk_overlap: 32
+    add_start_index: true
+
+inference:
+  wandb:
+    project: lca-code-editing-agents
+    enable: true

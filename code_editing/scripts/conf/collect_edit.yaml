@@ -1,0 +1,42 @@
+defaults:
+  - base_agent
+  - data_source: lca_code_editing
+  - llm: gpt-4-turbo
+  - retrieval: bm25
+  # Graph
+  - graph: collect_edit
+  - graph/context_collector: as_is_retrieval
+  - graph/editor: simple_editor
+  # Backbone
+  - backbone: openai-gpt-3.5-turbo
+  - backbone/prompt: simple_agent
+
+#  - tools@tools.code_search: code_search
+#  - tools@tools.view_file: view_file
+  # Other tools
+  - _self_
+
+chat_prompt:
+  owner_repo_commit: "hwchase17/openai-tools-agent"
+
+graph:
+  editor:
+    edit_prompt:
+      owner_repo_commit: "jbr-code-editing/edit"
+#  context_collector:
+#    search_prompt:
+#      owner_repo_commit: "jbr-code-editing/search-reviewed"
+
+retrieval:
+  splitter:
+    _target_: "langchain.text_splitter.RecursiveCharacterTextSplitter"
+    chunk_size: 512
+    chunk_overlap: 128
+    add_start_index: true
+
+inference:
+  wandb:
+    project: collect-edit-lca
+    enable: false
+  num_workers: 5
+#  end_at: 3

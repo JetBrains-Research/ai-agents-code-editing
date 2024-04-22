@@ -1,0 +1,14 @@
+defaults:
+  - base_baseline
+  # Override the defaults for this specific inference run in console
+  - backbone: llama7
+  - backbone/prompt: fewshot
+  - preprocessor: truncate
+  - data_source: lca_code_editing
+  - extractor: full_file
+  - _self_
+
+inference:
+  wandb:
+    project: lca-code-editing
+    enable: true
