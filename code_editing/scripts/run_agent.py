@@ -38,7 +38,9 @@ def main(cfg: RunAgentConfig):
     chat_prompt = prompt_factory.build()
 
     # Set up the graph factory for the agent interactions
-    graph_factory: GraphFactory = instantiate(cfg.graph).chat_prompt(chat_prompt).llm(llm).agent_executor_cfg(cfg.agent_executor)
+    graph_factory: GraphFactory = (
+        instantiate(cfg.graph).chat_prompt(chat_prompt).llm(llm).agent_executor_cfg(cfg.agent_executor)
+    )
 
     # Set up the tracing tags and metadata
     cool_name = get_cool_name()

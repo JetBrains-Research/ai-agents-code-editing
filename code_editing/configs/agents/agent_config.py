@@ -10,7 +10,17 @@ from code_editing.configs.agents.graph_config import GraphConfig
 from code_editing.configs.agents.llm_config import ChatLLMConfig
 from code_editing.configs.agents.loader_config import LoaderConfig
 from code_editing.configs.agents.retrieval_config import RetrievalConfig
-from code_editing.configs.agents.tools_config import EditToolConfig, ViewFileToolConfig, CodeSearchToolConfig
+from code_editing.configs.agents.tools_config import (
+    EditToolConfig,
+    ViewFileToolConfig,
+    CodeSearchToolConfig,
+    ACRSearchClassConfig,
+    ACRSearchMethodInFileConfig,
+    ACRSearchMethodInClassConfig,
+    ACRSearchMethodConfig,
+    ACRSearchCodeConfig,
+    ACRSearchCodeInFileConfig,
+)
 from code_editing.configs.backbones_configs import BackboneConfig
 from code_editing.configs.data_source_configs import DataSourceConfig
 from code_editing.configs.inference_config import InferenceConfig
@@ -37,3 +47,11 @@ cs = ConfigStore.instance()
 cs.store(name="edit", group="tools", node=EditToolConfig)
 cs.store(name="view_file", group="tools", node=ViewFileToolConfig)
 cs.store(name="code_search", group="tools", node=CodeSearchToolConfig)
+
+# All ACR tool options
+cs.store(name="acr_search_class", group="tools", node=ACRSearchClassConfig)
+cs.store(name="acr_search_method_in_file", group="tools", node=ACRSearchMethodInFileConfig)
+cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodInClassConfig)
+cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
+cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
+cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)

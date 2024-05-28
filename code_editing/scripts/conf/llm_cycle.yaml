@@ -4,27 +4,33 @@ defaults:
   - llm: gpt-3.5-turbo-16k
   - retrieval: bm25
   # Graph
-  - graph: self_reflection
-  ##  Tool configuration ##
+  - graph: collect_edit
+  - graph/context_collector: llm_cycle_retrieval
+  - graph/editor: simple_editor
   # Backbone
   - backbone: openai-gpt-3.5-turbo
   - backbone/prompt: simple_agent
-  # Other tools
+
   - tools@tools.code_search: code_search
-  - tools@tools.view_file: view_file
-  - tools@tools.edit: edit
+  # Other tools
   - _self_
 
 chat_prompt:
   owner_repo_commit: "hwchase17/openai-tools-agent"
 
+tools:
+  code_search:
+    do_add_to_viewed: false
+
 graph:
-  agent_prompt:
-    owner_repo_commit: "jbr-code-editing/agent"
-  agent_review_prompt:
-    owner_repo_commit: "jbr-code-editing/agent-reviewed"
-  review_prompt:
-    owner_repo_commit: "jbr-code-editing/review"
+  editor:
+    edit_prompt:
+      owner_repo_commit: "jbr-code-editing/edit"
+  context_collector:
+    search_prompt:
+      owner_repo_commit: "jbr-code-editing/search-reviewed"
+    review_prompt:
+      owner_repo_commit: "jbr-code-editing/search-is-sufficient"
 
 retrieval:
   splitter:
@@ -32,3 +38,4 @@ retrieval:
     chunk_size: 512
     chunk_overlap: 128
     add_start_index: true
+

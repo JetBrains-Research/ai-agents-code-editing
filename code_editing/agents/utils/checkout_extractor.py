@@ -10,14 +10,18 @@ class CheckoutExtractor(CodeBaseExtractor):
 
     REPO_KEY = "__REPOPATH__"
 
-    def __init__(self):
+    def __init__(self, use_temp_dirs=False):
         self.tmp_dirs = []
+        self.use_temp_dirs = use_temp_dirs
 
     def __call__(self, data, data_path) -> Dict[str, str]:
-        tmp_data_path = tempfile.mkdtemp()
-        self.tmp_dirs.append(tmp_data_path)
-        clone_repo(data.repo, tmp_data_path)
-        repo_path = checkout_repo(data.repo, data.base_hash, tmp_data_path)
+        if self.use_temp_dirs:
+            tmp_data_path = tempfile.mkdtemp()
+            self.tmp_dirs.append(tmp_data_path)
+            clone_repo(data.repo, tmp_data_path)
+            repo_path = checkout_repo(data.repo, data.base_hash, tmp_data_path)
+        else:
+            repo_path = checkout_repo(data.repo, data.base_hash, data_path)
         return {self.REPO_KEY: repo_path}
 
     # def __del__(self):

@@ -27,3 +27,28 @@ class CodeSearchToolConfig:
     show_outputs: bool = True
     calls_limit: Optional[int] = None
     do_add_to_viewed: bool = True
+
+# ACR boilerplate
+@dataclass
+class ACRSearchClassConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchClass"
+
+@dataclass
+class ACRSearchMethodInFileConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethodInFile"
+
+@dataclass
+class ACRSearchMethodInClassConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethodInClass"
+
+@dataclass
+class ACRSearchMethodConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethod"
+
+@dataclass
+class ACRSearchCodeConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCode"
+
+@dataclass
+class ACRSearchCodeInFileConfig:
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCodeInFile"

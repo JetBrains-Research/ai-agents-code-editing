@@ -1,10 +1,10 @@
 defaults:
   - base_eval
-  - data_source: lca_code_editing
+  - data_source: swe_bench
   - extractor: full_file
   - _self_
 
-input_path: test.csv  # override in the console
+input_path: outputs/inference.jsonl # <--- Change this to the path of the inference file
 metrics:
   code_bert_score:
     _target_: "code_editing.metrics.CodeBertScoreMetric"
@@ -27,24 +27,22 @@ metrics:
     _target_: "code_editing.metrics.ExactMatchMetric"
   file_localization:
     _target_: "code_editing.metrics.FileEditLocalizationMetric"
+    add_sample_metrics: true
   line_localization:
     _target_: "code_editing.metrics.LineEditLocalizationMetric"
+    add_sample_metrics: true
   py_scope_localization:
     _target_: "code_editing.metrics.PyScopeEditLocalizationMetric"
+    add_sample_metrics: true
   file_view_localization:
     _target_: "code_editing.metrics.FileViewLocalizationMetric"
+    add_sample_metrics: true
   line_view_localization:
     _target_: "code_editing.metrics.LineViewLocalizationMetric"
+    add_sample_metrics: true
   py_scope_view_localization:
     _target_: "code_editing.metrics.PyScopeViewLocalizationMetric"
-  pass:
-    _target_: "code_editing.metrics.PassMetric"
-    cfg:
-      repos_folder: ???
-      username: ???
-      test_username: test_lca_code_editing
-      language: Python
-      token_gh: ???
-wandb:
-  project: "lca-code-editing-eval"
-  enable: true
+    add_sample_metrics: true
+  total_context:
+    _target_: "code_editing.metrics.TotalContextMetric"
+    add_sample_metrics: true

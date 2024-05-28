@@ -82,10 +82,11 @@ class LCABugLocalizationDataSource(HuggingFaceSimpleGitCEDataSource):
 
 
 class SWEBenchDataSource(HuggingFaceSimpleGitCEDataSource):
-    def __init__(self, split: str, **kwargs):
+    def __init__(self, lite: bool = False, split_name: str = "test", **kwargs):
+        hub_name = "princeton-nlp/SWE-bench_Lite" if lite else "princeton-nlp/SWE-bench"
         super().__init__(
-            hub_name="princeton-nlp/SWE-bench",
-            split=split,
+            hub_name=hub_name,
+            split=split_name,
             **kwargs,
         )
 

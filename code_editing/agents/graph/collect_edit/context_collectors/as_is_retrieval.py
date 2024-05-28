@@ -10,7 +10,7 @@ from code_editing.utils.tokenization_utils import TokenizationUtils
 class AsIsRetrieval(GraphFactory):
     name = "as_is_retrieval"
 
-    def __init__(self, k: Optional[int] = 5, total_context: Optional[int] = None, **kwargs):
+    def __init__(self, k: Optional[int] = 10, total_context: Optional[int] = None, **kwargs):
         super().__init__()
         self.k = k
         self.total_context = total_context

@@ -37,9 +37,21 @@ class LLMFixedCtxRetrievalConfig(LLMRetrievalConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMFixedCtxRetrieval"
     total_context: int = 10000
 
+@dataclass
+class ACRRetrievalConfig(ContextCollectorsConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.ACRRetrieval"
+
+
+@dataclass
+class MyACRRetrievalConfig(ContextCollectorsConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.MyACRRetrieval"
+
 
 cs = ConfigStore.instance()
 cs.store(name="as_is_retrieval", group="graph/context_collector", node=AsIsRetrievalConfig)
 cs.store(name="llm_retrieval", group="graph/context_collector", node=LLMRetrievalConfig)
 cs.store(name="llm_cycle_retrieval", group="graph/context_collector", node=LLMCycleRetrievalConfig)
 cs.store(name="llm_fixed_ctx_retrieval", group="graph/context_collector", node=LLMFixedCtxRetrievalConfig)
+
+cs.store(name="acr", group="graph/context_collector", node=ACRRetrievalConfig)
+cs.store(name="my_acr", group="graph/context_collector", node=MyACRRetrievalConfig)

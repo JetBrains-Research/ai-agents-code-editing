@@ -1,8 +1,10 @@
+import logging
 from typing import Union, Dict, List
 
 from hydra.utils import instantiate, get_class
 from langchain_core.runnables import RunnableConfig
 
+from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_manage import SearchManager
 from code_editing.agents.graph.graph_factory import GraphFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
@@ -71,11 +73,14 @@ class AgentCodeEditor(CodeEditor):
             loader_kwargs=self.loader_kwargs,
             data_path=self.data_path,
         )
+        search_manager = SearchManager(project_path=repo_path)
+        search_manager.show_lineno = True
 
         tools = self.tool_factory.build(
             data_path=self.data_path,
             repo_path=repo_path,
             retrieval_helper=retrieval_helper,
+            search_manager=search_manager,
             root_span=root_span,  # W&B root span
             **self.tools_cfg,
         )
@@ -85,7 +90,7 @@ class AgentCodeEditor(CodeEditor):
 
         with lock_repo(repo_path, self.data_path):
             # Invoke the graph
-            app.invoke(
+            res = app.invoke(
                 input={"instruction": req["instruction"]},
                 config=RunnableConfig(
                     tags=self.tags,
@@ -97,7 +102,10 @@ class AgentCodeEditor(CodeEditor):
             # Get diff
             diff = get_head_diff_unsafe(repo_path, self.data_path)
             # Get lines viewed
-            viewed_lines = retrieval_helper.viewed_lines
+            viewed_lines = res.get("collected_context", None)
+            if viewed_lines is None:
+                logging.warning("No viewed lines found in the graph output")
+                viewed_lines = retrieval_helper.viewed_lines
             # Reset the repository to the head commit
             reset_to_head_unsafe(repo_path, self.data_path)
 

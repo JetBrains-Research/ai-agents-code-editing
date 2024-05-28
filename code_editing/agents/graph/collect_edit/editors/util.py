@@ -20,27 +20,29 @@ def process_edit(file, lines_to_edit: List[int], edit_func: Callable[[str, str],
         New code for the file.
     """
     # Read the file
+    # TODO: write a test for this
     code = read_file_full(file)
     code_lines = code.split("\n")
     # Result code
-    result_code = code
+    result_code = code_lines
     # Split the lines to edit into segments of contiguous lines
     segments = split_into_segments(lines_to_edit)
     # Delta lines (number of lines added or removed)
-    delta_lines = 0
+    delta_lines = -1  # -1 because the first line is 0
     # Process the segments
     for start, end in segments:
+        assert start > 0, f"Line numbers should be 1-based, got {start}."
         # Get the snippet of code
         len1 = end - start
-        snippet = "\n".join(code_lines[start:end])
+        snippet = "\n".join(code_lines[start + delta_lines:end + delta_lines])
         # Edit the snippet
         edited_snippet = edit_func(file, snippet)
         # Replace the snippet in the result code
         len2 = edited_snippet.count("\n") + 1
-        result_code = result_code[: start + delta_lines] + edited_snippet + result_code[end + delta_lines :]
+        result_code = result_code[: start + delta_lines] + edited_snippet.split("\n") + result_code[end + delta_lines :]
         delta_lines += len2 - len1
     # Save the edited code
-    return result_code
+    return "\n".join(result_code)
 
 
 def split_into_segments(lines: List[int]) -> List[Tuple[int, int]]:
@@ -71,9 +73,9 @@ class MarkdownOutputParser(BaseOutputParser):
         super().__init__()
         self.key = key
         if key is not None:
-            self.pattern = "```" + key + "\n(.*?)\n```"
+            self.pattern = "```" + key + "\n(.*)\n```"
         else:
-            self.pattern = r"```.*?\n(.*?)\n```"
+            self.pattern = r"```.*?\n(.*)\n```"
 
     def parse(self, text: str) -> dict:
         matches = re.findall(self.pattern, text, re.DOTALL)

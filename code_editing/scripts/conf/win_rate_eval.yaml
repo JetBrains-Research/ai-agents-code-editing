@@ -1,0 +1,11 @@
+defaults:
+  - base_eval
+  - data_source: swe_bench
+  - extractor: full_file
+  - _self_
+
+input_path: outputs/raw/swe-llm-cycle/inference.jsonl # <--- Change this to the path of the inference file 1
+metrics:
+  gpt4_comp:
+    _target_: "code_editing.metrics.GPT4ComparisonMetric"
+    second_path: outputs/raw/swe-agent/inference.jsonl # <--- Change this to the path of the inference file 2

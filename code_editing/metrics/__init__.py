@@ -2,6 +2,7 @@ from .chrf_metric import ChrfMetric, ChrfFileMetric
 from .code_bert_score_metric import CodeBertScoreMetric, CodeBertScoreFileMetric
 from .exact_match_metric import ExactMatchMetric
 from .format_adherence import FormatAdherenceWeak, SuccessfulGeneration, ValidGitDiff
+from .gpt4_comparison import GPT4ComparisonMetric
 from .gpt4_eval import GPT4EvaluationMetric
 from .localization import (
     LineEditLocalizationMetric,
@@ -12,7 +13,6 @@ from .localization import (
     PyScopeViewLocalizationMetric,
     TotalContextMetric,
 )
-from .pass_metric import PassMetric
 
 __all__ = [
     "CodeBertScoreMetric",
@@ -24,7 +24,6 @@ __all__ = [
     "FormatAdherenceWeak",
     "SuccessfulGeneration",
     "ValidGitDiff",
-    "PassMetric",
     "FileEditLocalizationMetric",
     "LineEditLocalizationMetric",
     "PyScopeEditLocalizationMetric",
@@ -32,4 +31,5 @@ __all__ = [
     "LineViewLocalizationMetric",
     "PyScopeViewLocalizationMetric",
     "TotalContextMetric",
+    "GPT4ComparisonMetric",
 ]

@@ -1,14 +1,10 @@
 defaults:
   - base_baseline
   # Override the defaults for this specific inference run in console
-  - backbone: llama7
-  - backbone/prompt: fewshot
+  - backbone: openai-gpt-3.5-turbo
+  - backbone/prompt: code_fragment
   - preprocessor: truncate
-  - data_source: lca_code_editing
-  - extractor: full_file
+  - data_source: swe_bench
+  - extractor: code_fragment
   - _self_
 
-inference:
-  wandb:
-    project: lca-code-editing
-    enable: true

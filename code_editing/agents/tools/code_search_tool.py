@@ -21,13 +21,19 @@ class CodeSearchTool(CEBaseTool):
             raise ValueError("Retrieval helper is required for code search tool")
 
     class CodeSearchToolInput(BaseModel):
-        query: str = Field(description="Search query", examples=["redundancy check", "get_user_by_id"])
-        limit: int = Field(description="Number of search results to return", default=10, examples=[5, 10])
+        query: str = Field(description="Search query. Should be a substring of the code you are looking for.", examples=["redundancy check", "get_user_by_id"])
+        limit: int = Field(description="Number of search results to return", default=10)
         offset: int = Field(description="Offset for the search results", default=0, examples=[0, 10])
 
     name = "code-search"
-    description = """Utility to search the code base. Useful to find the relevant code. Input should be a query, 
-    limit and offset."""
+    description = """Utility to search the code base. Useful to find the relevant code. Input should be a query,
+    limit and offset.
+
+    Your query should be a substring of the code you are looking for. The tool will return the code snippets that contain
+    the substring.
+
+    Do not use the tool to use semantic search. The tool is based on the substring search.
+    """
     args_schema = CodeSearchToolInput
 
     def _run(self, query: str, limit: int = 10, offset: int = 0, run_manager=None) -> str:

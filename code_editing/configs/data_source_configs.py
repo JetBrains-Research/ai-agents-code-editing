@@ -35,7 +35,8 @@ class LCABugLocalizationDataSourceConfig(DataSourceConfig):
 @dataclass
 class SWEBenchDataSourceConfig(DataSourceConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.data_sources.SWEBenchDataSource"
-    split: str = "dev"
+    split_name: str = "test"
+    lite: bool = True
 
 
 cs = ConfigStore.instance()

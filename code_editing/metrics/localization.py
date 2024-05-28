@@ -246,13 +246,17 @@ class TotalContextMetric(BaseSentenceMetric):
             raise ValueError("This metric only works with HuggingFaceSimpleGitCEDataSource")
         self.data_path = data_source.data_path
         self.add_sample_metrics = add_sample_metrics
-        self.tok_utils = TokenizationUtils("gpt-3.5-turbo")
+        self.tok_utils = TokenizationUtils("gpt-3.5-turbo-16k")
 
     def _score_single(self, diff_true: str, diff_pred: str, full_row):
         viewed_lines = json.loads(full_row.get("viewed_lines", None) or "{}")
-        contents = get_repo_spec_content_on_commit(
-            full_row["repo"], full_row["base_hash"], viewed_lines.keys(), self.data_path
-        )
+        try:
+            contents = get_repo_spec_content_on_commit(
+                full_row["repo"], full_row["base_hash"], viewed_lines.keys(), self.data_path
+            )
+        except Exception as e:
+            logging.error(f"Failed to get the content of the files for {full_row['repo']}@{full_row['base_hash']}", e)
+            return 0
         total_context = 0
         for file, lines in viewed_lines.items():
             code_lines = contents.get(file, None)

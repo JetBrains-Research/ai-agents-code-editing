@@ -1,8 +1,10 @@
 from operator import itemgetter
 from typing import List
 
-from langchain.memory import ChatMessageHistory, ConversationBufferMemory
+import jedi
+from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import OutputFixingParser
+from langchain_core.exceptions import OutputParserException
 from langchain_core.runnables import RunnableLambda, RunnableSequence
 from langgraph.graph import StateGraph, END
 
@@ -27,7 +29,7 @@ class SimpleEditor(GraphFactory):
 
         agent_executor = self._agent_executor(
             memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="output"),
-            tools=[]
+            tools=[],
         )
 
         def edit(state: EditorState) -> EditorState:
@@ -40,21 +42,56 @@ class SimpleEditor(GraphFactory):
             file_name = next(iter(keys - edited_files))
             # Edit the file
             lines = collected_context[file_name]
+            instruction = state["instruction"]
 
             def edit_lambda(_: str, snippet: str) -> str:
-                inp = {"file_name": file_name, "code": snippet, "instruction": state["instruction"]}
+                nonlocal instruction
+
+                inp = {"file_name": file_name, "code": snippet, "instruction": instruction}
                 parser = MarkdownOutputParser(key="editedcode")
+                # parser = TagParser(tag="editedcode")
+                # parser = MarkdownTagParser(tag="answer")
                 fixing_parser = OutputFixingParser.from_llm(parser=parser, llm=self._llm)
                 self.edit_prompt.overrides["format_instructions"] = parser.get_format_instructions()
-                return RunnableSequence(
-                    self.edit_prompt.as_runnable(to_dict=True),
-                    agent_executor,
-                    itemgetter("output") | fixing_parser,
-                    name=f"Edit {file_name}",
-                ).invoke(inp)
+                for _ in range(5):
+                    try:
+                        return RunnableSequence(
+                            self.edit_prompt.as_runnable(to_dict=True),
+                            agent_executor,
+                            itemgetter("output") | fixing_parser,
+                            name=f"Edit {file_name}",
+                        ).invoke(inp)
+                    except Exception as e:
+                        pass
+                raise OutputParserException("Failed to edit the code")
 
             file = parse_file(file_name, retrieval_helper.repo_path)
             new_code = process_edit(file, lines, edit_lambda)
+
+            # Check linter
+            def linter_check(code: str) -> list:
+                script = jedi.Script(code)
+                return script.get_syntax_errors()
+
+            def to_lines(syntax_errors, k=3):
+                lines = set()
+                for error in syntax_errors:
+                    start = max(1, error.line - k)
+                    end = error.until_line + k
+                    lines.update(range(start, end + 1))
+                return list(lines)
+
+            for _ in range(3):
+                syntax_errors = linter_check(new_code)
+                if len(syntax_errors) == 0:
+                    break
+                instruction = "There are syntax errors in the code. Please fix them."
+                lines = to_lines(syntax_errors)
+                try:
+                    new_code = process_edit(file, lines, edit_lambda)
+                except OutputParserException as e:
+                    print(e)
+
             # Write the new code to the file
             write_file_full(file, new_code)
             # Update the state

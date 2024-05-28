@@ -11,16 +11,10 @@ class TokenizationUtils:
     - truncating a prompt to first X tokens.
     """
 
-    PROFILE_NAME_TO_PROVIDER_AND_MODEL = {
-        "gpt-3.5-turbo": {"model_provider": "openai", "model_name": "gpt-3.5-turbo"},
-        "gpt-3.5-turbo-16k": {"model_provider": "openai", "model_name": "gpt-3.5-turbo-16k"},
-        "gpt-4": {"model_provider": "openai", "model_name": "gpt-4"},
-        "gpt-4-turbo": {"model_provider": "openai", "model_name": "gpt-4-turbo"},
-        "gpt-4-1106-preview": {"model_provider": "openai", "model_name": "gpt-4-1106-preview"},
-    }
-
     def __init__(self, profile_name: str):
-        model_info = self.PROFILE_NAME_TO_PROVIDER_AND_MODEL.get(profile_name, None)
+        model_info = None
+        if "gpt" in profile_name:
+            model_info = {"model_provider": "openai", "model_name": profile_name}
         if not model_info:
             logging.warning(f"Unknown profile {profile_name}. Will treat it as a model name on HuggingFace Hub.")
             model_info = {"model_provider": "huggingface", "model_name": profile_name}

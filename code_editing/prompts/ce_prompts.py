@@ -123,7 +123,7 @@ Now I will provide the diff:
 --- a/main.py
 +++ b/main.py
 @@ -3,5 +3,5 @@ from gcd import gcd
- 
+
  def main():
      init_db()
 -    res = gcd(566)

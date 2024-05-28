@@ -22,7 +22,7 @@ def _setup_repo(repo_path: str, data_dir: str):
 
 
 def prep_repo(repo: git.Repo):
-    repo.remotes.origin.fetch()
+    repo.git.fetch("--all")
     repo.git.checkout("HEAD", ".")
     repo.git.clean("-fd")
     with repo.config_writer("repository") as cw:
