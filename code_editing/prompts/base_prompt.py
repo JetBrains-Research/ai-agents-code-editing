@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, TypedDict
 
 from jinja2.exceptions import TemplateError
-from transformers import PreTrainedTokenizerBase, PreTrainedTokenizerFast  # type: ignore[import-untyped]
+from transformers import PreTrainedTokenizerFast
 
 from code_editing.backbones.base_backbone import CEInput, CEOutput
 
@@ -18,7 +18,11 @@ class PromptStatistics(TypedDict):
     processed_length: int
 
 
-DEFAULT_HF_CHAT_TEMPLATE = PreTrainedTokenizerBase().default_chat_template
+DEFAULT_HF_CHAT_TEMPLATE = (
+    "{% for message in messages %}{{'<|im_start|>' + message['role'] + '\n' + message["
+    "'content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ "
+    "'<|im_start|>assistant\n' }}{% endif %}"
+)
 
 
 def has_chat_template(tokenizer) -> bool:

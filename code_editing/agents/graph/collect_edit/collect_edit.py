@@ -1,8 +1,9 @@
 from typing import Dict, List
 
-from langgraph.graph import StateGraph, END
+from langchain_core.runnables import RunnableLambda
+from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.graph_factory import GraphFactory, AgentInput
+from code_editing.agents.graph.graph_factory import AgentInput, GraphFactory
 
 
 class CollectEditState(AgentInput):
@@ -24,12 +25,22 @@ class CollectEdit(GraphFactory):
 
         workflow = StateGraph(dict)
 
+        def validate_intermediate(state: dict):
+            if "collected_context" not in state:
+                raise ValueError("`collected_context` key is not in the state. Please check the workflow.")
+            for key, value in state["collected_context"].items():
+                if 0 in list(value):
+                    raise ValueError(f"Lines in {key} are 0-indexed. Please check the workflow.")
+            return state
+
         workflow.add_node("collect", self.context_collector.build(retrieval_helper=retrieval_helper))
+        workflow.add_node("validate", RunnableLambda(validate_intermediate, name="validate"))
+        workflow.add_edge("collect", "validate")
 
         if not self.only_collect:
             workflow.add_node("edit", self.editor.build(retrieval_helper=retrieval_helper))
             workflow.add_edge("edit", END)
-        workflow.add_edge("collect", "edit" if not self.only_collect else END)
+        workflow.add_edge("validate", "edit" if not self.only_collect else END)
 
         workflow.set_entry_point("collect")
 

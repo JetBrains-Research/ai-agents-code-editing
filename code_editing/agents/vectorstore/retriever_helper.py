@@ -6,7 +6,7 @@ from typing import List
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_core.documents import Document
-from langchain_core.prompts import format_document, PromptTemplate
+from langchain_core.prompts import PromptTemplate, format_document
 
 from code_editing.agents.tools.common import parse_file, read_file
 from code_editing.agents.vectorstore.file_extensions import extensions, filter_docs

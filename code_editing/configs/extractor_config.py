@@ -25,4 +25,3 @@ cs = ConfigStore.instance()
 # all available options for the extractor
 cs.store(name="full_file", group="extractor", node=FullFileExtractorConfig)
 cs.store(name="code_fragment", group="extractor", node=CodeFragmentExtractorConfig)
-

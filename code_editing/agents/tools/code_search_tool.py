@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -7,7 +7,9 @@ from code_editing.agents.tools.common import lines_format_document
 
 
 class CodeSearchTool(CEBaseTool):
-    def __init__(self, show_outputs: bool = True, calls_limit: Optional[int] = None, do_add_to_viewed: bool = True, **kwargs):
+    def __init__(
+        self, show_outputs: bool = True, calls_limit: Optional[int] = None, do_add_to_viewed: bool = False, **kwargs
+    ):
         super().__init__(**kwargs)
         self.args_schema = self.CodeSearchToolInput
         if self.dry_run:
@@ -21,7 +23,10 @@ class CodeSearchTool(CEBaseTool):
             raise ValueError("Retrieval helper is required for code search tool")
 
     class CodeSearchToolInput(BaseModel):
-        query: str = Field(description="Search query. Should be a substring of the code you are looking for.", examples=["redundancy check", "get_user_by_id"])
+        query: str = Field(
+            description="Search query. Should be a substring of the code you are looking for.",
+            examples=["redundancy check", "get_user_by_id"],
+        )
         limit: int = Field(description="Number of search results to return", default=10)
         offset: int = Field(description="Offset for the search results", default=0, examples=[0, 10])
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, TypedDict, List
+from typing import Dict, List, TypedDict
 
 
 class CEInput(TypedDict):

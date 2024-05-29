@@ -12,16 +12,21 @@ def get_repo_path(data_dir, repo) -> str:
     return str(os.path.join(data_dir, "repos", repo))
 
 
-def _setup_repo(repo_path: str, data_dir: str):
+def _get_repo(repo_path: str):
     repo = git.Repo(repo_path)
+    return repo
+
+
+def lock_repo(repo_path: str, data_dir: str) -> FileLock:
+    """Lock a repo to modify it."""
     # abs path of repo -> lock name
     lock_name = os.path.abspath(repo_path).replace("/", "_").replace("\\", "_")
     lock_name = "".join([c for c in lock_name if c.isalnum() or c in "_-"])
-    lock_file = os.path.join(data_dir, "repos", f"{lock_name}_lock")
-    return repo, lock_file
+    lock_file = os.path.join(data_dir, "repos", f"{lock_name}.lock")
+    return FileLock(lock_file)
 
 
-def prep_repo(repo: git.Repo):
+def _prep_repo(repo: git.Repo):
     repo.git.fetch("--all")
     repo.git.checkout("HEAD", ".")
     repo.git.clean("-fd")
@@ -63,24 +68,21 @@ def _checkout_commit(repo: git.Repo, commit_sha: str) -> None:
 def get_parent_commit_sha(repo: str, commit_sha: str, data_dir: str) -> str:
     """Get the parent commit sha of a commit."""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _fetch_commit(repo, commit_sha)
-        parent_commit_sha = repo.commit(commit_sha).parents[0].hexsha
+    repo = _get_repo(repo_path)
+    _prep_repo(repo)
+    _fetch_commit(repo, commit_sha)
+    parent_commit_sha = repo.commit(commit_sha).parents[0].hexsha
     return parent_commit_sha
 
 
 def get_repo_spec_content_on_commit(repo: str, base_commit_sha: str, files: List[str], data_dir: str) -> Dict[str, str]:
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo = _get_repo(repo_path)
 
-    # Acquire lock
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, base_commit_sha)
-        file_contents = _read_files(repo, files)
-        repo.git.checkout("HEAD", ".")
+    _prep_repo(repo)
+    _checkout_commit(repo, base_commit_sha)
+    file_contents = _read_files(repo, files)
+    repo.git.checkout("HEAD", ".")
 
     return file_contents
 
@@ -90,20 +92,18 @@ def apply_patch_like_commit(
 ) -> Optional[Dict[str, str]]:
     """Apply a patch to the parent of a git commit. Returns contents of [files] after applying the patch."""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo, lock_file = _get_repo(repo_path)
 
-    # Acquire lock
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, base_commit_sha)
-        try:
-            apply_patch_unsafe(repo, patch)
-        except GitCommandError:
-            # Failed to apply patch
-            repo.git.checkout("HEAD", ".")
-            return None
-        file_contents = _read_files(repo, files)
+    _prep_repo(repo)
+    _checkout_commit(repo, base_commit_sha)
+    try:
+        apply_patch_unsafe(repo, patch)
+    except GitCommandError:
+        # Failed to apply patch
         repo.git.checkout("HEAD", ".")
+        return None
+    file_contents = _read_files(repo, files)
+    repo.git.checkout("HEAD", ".")
 
     return file_contents
 
@@ -117,7 +117,7 @@ def clone_repo(repo: str, data_dir: str, repo_url: str = None) -> None:
         return
     os.makedirs(repo_path, exist_ok=True)
     repo = git.Repo.clone_from(repo_url, repo_path)
-    prep_repo(repo)
+    _prep_repo(repo)
 
 
 def get_diff(repo: str, commit_sha: str, data_dir: str, base_commit_sha: Optional[str] = None) -> str:
@@ -125,54 +125,32 @@ def get_diff(repo: str, commit_sha: str, data_dir: str, base_commit_sha: Optiona
     if base_commit_sha is None:
         base_commit_sha = get_parent_commit_sha(repo, commit_sha, data_dir)
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo = _get_repo(repo_path)
 
-    # Acquire lock
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, commit_sha)
-        _fetch_commit(repo, base_commit_sha)
-        diff = repo.git.diff(base_commit_sha)
-        repo.git.checkout("HEAD", ".")
+    _prep_repo(repo)
+    _checkout_commit(repo, commit_sha)
+    _fetch_commit(repo, base_commit_sha)
+    diff = repo.git.diff(base_commit_sha)
+    repo.git.checkout("HEAD", ".")
 
     return str(diff)
-
-
-def get_changed_files(repo: str, commit_sha: str, data_dir: str, base_commit_sha: Optional[str] = None) -> List[str]:
-    """Get the changed files of a commit."""
-    if base_commit_sha is None:
-        base_commit_sha = get_parent_commit_sha(repo, commit_sha, data_dir)
-    repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
-
-    # Acquire lock
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, commit_sha)
-        _fetch_commit(repo, base_commit_sha)
-        diff = repo.git.diff(base_commit_sha, name_only=True)
-        repo.git.checkout("HEAD", ".")
-
-    return diff.split("\n")
 
 
 def get_changed_files_patch(repo: str, patch: str, data_dir: str, base_commit_sha: str) -> List[str]:
     """Get the changed files of a commit."""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo = _get_repo(repo_path)
 
-    # Acquire lock
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, base_commit_sha)
-        try:
-            apply_patch_unsafe(repo, patch)
-        except GitCommandError:
-            # Failed to apply patch
-            repo.git.checkout("HEAD", ".")
-            return []
-        diff = repo.git.diff(base_commit_sha, name_only=True)
+    _prep_repo(repo)
+    _checkout_commit(repo, base_commit_sha)
+    try:
+        apply_patch_unsafe(repo, patch)
+    except GitCommandError:
+        # Failed to apply patch
         repo.git.checkout("HEAD", ".")
+        return []
+    diff = repo.git.diff(base_commit_sha, name_only=True)
+    repo.git.checkout("HEAD", ".")
 
     return diff.split("\n")
 
@@ -180,32 +158,24 @@ def get_changed_files_patch(repo: str, patch: str, data_dir: str, base_commit_sh
 def get_commit_name(repo: str, commit_sha: str, data_dir: str) -> str:
     """Get the commit name of a commit."""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo = _get_repo(repo_path)
 
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _fetch_commit(repo, commit_sha)
-        commit_name = repo.commit(commit_sha).message
+    _prep_repo(repo)
+    _fetch_commit(repo, commit_sha)
+    commit_name = repo.commit(commit_sha).message
 
     return commit_name
 
 
-def lock_repo(repo_path: str, data_dir: str) -> FileLock:
-    """Lock a repo to modify it."""
-    _, lock_file = _setup_repo(repo_path, data_dir)
-    return FileLock(lock_file)
-
-
-def get_head_diff_unsafe(repo_path: str, data_dir: str) -> str:
-    """Get the diff of the head commit. No lock is acquired."""
-    repo, _ = _setup_repo(repo_path, data_dir)
-
+def get_head_diff_unsafe(repo_path: str, _: str) -> str:
+    """Get the diff of the head commit."""
+    repo = _get_repo(repo_path)
     return repo.git.diff()
 
 
-def get_head_sha_unsafe(repo_path: str, data_dir: str) -> str:
-    """Get the hexsha of the head commit. No lock is acquired."""
-    repo, _ = _setup_repo(repo_path, data_dir)
+def get_head_sha_unsafe(repo_path: str, _: str) -> str:
+    """Get the hexsha of the head commit."""
+    repo = _get_repo(repo_path)
 
     return repo.head.commit.hexsha
 
@@ -213,18 +183,17 @@ def get_head_sha_unsafe(repo_path: str, data_dir: str) -> str:
 def checkout_repo(repo: str, commit_sha: str, data_dir: str) -> str:
     """Checkout the repository at given commit and return full path to the directory"""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _setup_repo(repo_path, data_dir)
+    repo = _get_repo(repo_path)
 
-    with FileLock(lock_file):
-        prep_repo(repo)
-        _checkout_commit(repo, commit_sha)
+    _prep_repo(repo)
+    _checkout_commit(repo, commit_sha)
 
     return repo_path
 
 
-def reset_to_head_unsafe(repo_path: str, data_dir: str) -> None:
-    """Reset the repository to the head commit. No lock is acquired."""
-    repo, _ = _setup_repo(repo_path, data_dir)
+def reset_to_head(repo_path: str, _: str) -> None:
+    """Reset the repository to the head commit."""
+    repo = _get_repo(repo_path)
     _checkout_commit(repo, "HEAD")
 
 

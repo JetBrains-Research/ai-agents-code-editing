@@ -1,0 +1,4 @@
+defaults:
+  - /tools@code_search: code_search
+  - /tools@view_file: view_file
+  - /tools@edit: edit

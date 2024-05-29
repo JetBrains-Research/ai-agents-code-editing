@@ -12,6 +12,7 @@ class DummyBackbone(CEBackbone):
 
     This backbone is used for testing purposes and as a baseline for other backbones.
     """
+
     name = "dummy"
 
     def __init__(self, model_name: str, prompt: CEPrompt, file_sample_p: float, line_sample_p: float):
@@ -27,18 +28,23 @@ class DummyBackbone(CEBackbone):
             if random.random() > self.file_sample_p:
                 continue
             diffs.append((file_name, self._expand_to_diff(file_contents)))
-        output = '```diff\n'
-        output += '\n'.join([f'--- a/{file_name}\n+++ b/{file_name}\n{self._truncate_diff(diff, len(diffs))}' for file_name, diff in diffs])
-        output += '\n```'
+        output = "```diff\n"
+        output += "\n".join(
+            [
+                f"--- a/{file_name}\n+++ b/{file_name}\n{self._truncate_diff(diff, len(diffs))}"
+                for file_name, diff in diffs
+            ]
+        )
+        output += "\n```"
         return self.prompt.postprocess(req, {"prediction": output})
 
     def _expand_to_diff(self, code):
-        res = ''
-        for line in code.split('\n'):
+        res = ""
+        for line in code.split("\n"):
             if random.random() > self.line_sample_p:
                 continue
-            res += f'+{line}\n'
-            res += f'-{line}\n'
+            res += f"+{line}\n"
+            res += f"-{line}\n"
         return res
 
     def _truncate_diff(self, diff: str, cnt: int = 1) -> str:

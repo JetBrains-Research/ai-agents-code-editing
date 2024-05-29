@@ -27,9 +27,14 @@ class OpenAIBackbone(CEBackbone):
         # Initialize the root span for W&B
         parent_span: Optional[Trace] = kwargs.get("parent_span", None)
 
-        preprocessed_inputs = wandb_utils.log_prompt_trace(parent_span, metadata={
-            "prompt_name": self._prompt.name,
-        })(self._prompt.chat)(req)
+        preprocessed_inputs = wandb_utils.log_prompt_trace(
+            parent_span,
+            metadata={
+                "prompt_name": self._prompt.name,
+            },
+        )(
+            self._prompt.chat
+        )(req)
 
         @wandb_utils.log_llm_trace(parent_span=parent_span, model_name=self._model_name)
         def openai_request(inp):

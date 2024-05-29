@@ -1,9 +1,9 @@
 import re
 from abc import ABC, abstractmethod
-from typing import List, Dict
+from typing import Dict, List
 
 from code_editing.data_sources.git_data import SimpleGitCEData
-from code_editing.utils.git_utils import get_repo_spec_content_on_commit, get_diff, get_changed_files_patch
+from code_editing.utils.git_utils import get_changed_files_patch, get_diff, get_repo_spec_content_on_commit
 
 
 class CodeBaseExtractor(ABC):

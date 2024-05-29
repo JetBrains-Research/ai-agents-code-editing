@@ -1,7 +1,7 @@
 # Original: https://github.com/nus-apr/auto-code-rover/blob/main/app/search/search_manage.py
 from collections import defaultdict, namedtuple
 from collections.abc import MutableMapping
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 from code_editing.agents.graph.collect_edit.context_collectors.acr_search import search_utils
 from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_utils import SearchResult
@@ -9,9 +9,7 @@ from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search
 LineRange = namedtuple("LineRange", ["start", "end"])
 
 ClassIndexType = MutableMapping[str, list[tuple[str, LineRange]]]
-ClassFuncIndexType = MutableMapping[
-    str, MutableMapping[str, list[tuple[str, LineRange]]]
-]
+ClassFuncIndexType = MutableMapping[str, MutableMapping[str, list[tuple[str, LineRange]]]]
 FuncIndexType = MutableMapping[str, list[tuple[str, LineRange]]]
 
 RESULT_SHOW_LIMIT = 3
@@ -97,9 +95,7 @@ class SearchManager:
 
         return class_index, class_func_index, function_index, parsed_py_files
 
-    def file_line_to_class_and_func(
-        self, file_path: str, line_no: int
-    ) -> tuple[str | None, str | None]:
+    def file_line_to_class_and_func(self, file_path: str, line_no: int) -> tuple[str | None, str | None]:
         """
         Given a file path and a line number, return the class and function name.
         If the line is not inside a class or function, return None.
@@ -121,9 +117,7 @@ class SearchManager:
         # this file-line is not recorded in any of the indexes
         return None, None
 
-    def _search_func_in_class(
-        self, function_name: str, class_name: str
-    ) -> list[SearchResult]:
+    def _search_func_in_class(self, function_name: str, class_name: str) -> list[SearchResult]:
         """
         Search for the function name in the class.
         Args:
@@ -247,9 +241,7 @@ class SearchManager:
         tool_result = f"Found {len(search_res)} classes with name {class_name} in the codebase:\n\n"
         if len(search_res) > RESULT_SHOW_LIMIT:
             tool_result += "They appeared in the following files:\n"
-            tool_result += SearchResult.collapse_to_file_level(
-                search_res, self.project_path
-            )
+            tool_result += SearchResult.collapse_to_file_level(search_res, self.project_path)
         else:
             for idx, res in enumerate(search_res):
                 res_str = res.to_tagged_str(self.project_path)
@@ -259,7 +251,7 @@ class SearchManager:
 
     def search_class_in_file(self, class_name, file_name: str) -> tuple[str, str, bool]:
         # (1) check whether we can get the file
-        candidate_py_abs_paths = [f for f in self.parsed_files if f.replace('\\', '/').endswith(file_name)]
+        candidate_py_abs_paths = [f for f in self.parsed_files if f.replace("\\", "/").endswith(file_name)]
         if not candidate_py_abs_paths:
             tool_output = f"Could not find file {file_name} in the codebase."
             summary = tool_output
@@ -292,13 +284,11 @@ class SearchManager:
             tool_output += f"- Search result {idx + 1}:\n```\n{res_str}\n```\n"
         return tool_output, summary, True
 
-    def search_method_in_file(
-        self, method_name: str, file_name: str
-    ) -> tuple[str, str, bool]:
+    def search_method_in_file(self, method_name: str, file_name: str) -> tuple[str, str, bool]:
         # (1) check whether we can get the file
         # supports both when file_name is relative to project root, and when
         # it is just a short name
-        candidate_py_abs_paths = [f for f in self.parsed_files if f.replace('\\', '/').endswith(file_name)]
+        candidate_py_abs_paths = [f for f in self.parsed_files if f.replace("\\", "/").endswith(file_name)]
         # print(candidate_py_files)
         if not candidate_py_abs_paths:
             tool_output = f"Could not find file {file_name} in the codebase."
@@ -313,15 +303,11 @@ class SearchManager:
             return tool_output, summary, False
 
         # (3) filter the search result => they need to be in one of the files!
-        filtered_res: list[SearchResult] = [
-            res for res in search_res if res.file_path in candidate_py_abs_paths
-        ]
+        filtered_res: list[SearchResult] = [res for res in search_res if res.file_path in candidate_py_abs_paths]
 
         # (4) done with search, now prepare result
         if not filtered_res:
-            tool_output = (
-                f"There is no method with name `{method_name}` in file {file_name}."
-            )
+            tool_output = f"There is no method with name `{method_name}` in file {file_name}."
             summary = tool_output
             return tool_output, summary, False
 
@@ -335,18 +321,14 @@ class SearchManager:
             tool_output += f"- Search result {idx + 1}:\n```\n{res_str}\n```\n"
         return tool_output, summary, True
 
-    def search_method_in_class(
-        self, method_name: str, class_name: str
-    ) -> tuple[str, str, bool]:
+    def search_method_in_class(self, method_name: str, class_name: str) -> tuple[str, str, bool]:
         if class_name not in self.class_index:
             tool_output = f"Could not find class {class_name} in the codebase."
             summary = tool_output
             return tool_output, summary, False
 
         # has this class, check its methods
-        search_res: list[SearchResult] = self._search_func_in_class(
-            method_name, class_name
-        )
+        search_res: list[SearchResult] = self._search_func_in_class(method_name, class_name)
         if not search_res:
             tool_output = f"Could not find method {method_name} in class {class_name}`."
             summary = tool_output
@@ -359,7 +341,9 @@ class SearchManager:
         # There can be multiple classes defined in multiple files, which contain the same method
         # still trim the result, just in case
         if len(search_res) > RESULT_SHOW_LIMIT:
-            tool_output += f"Too many results, showing full code for {RESULT_SHOW_LIMIT} of them, and the rest just file names:\n"
+            tool_output += (
+                f"Too many results, showing full code for {RESULT_SHOW_LIMIT} of them, and the rest just file names:\n"
+            )
         first_five = search_res[:RESULT_SHOW_LIMIT]
         for idx, res in enumerate(first_five):
             res_str = res.to_tagged_str(self.project_path)
@@ -385,9 +369,7 @@ class SearchManager:
 
         if len(search_res) > RESULT_SHOW_LIMIT:
             tool_output += "They appeared in the following files:\n"
-            tool_output += SearchResult.collapse_to_file_level(
-                search_res, self.project_path
-            )
+            tool_output += SearchResult.collapse_to_file_level(search_res, self.project_path)
         else:
             for idx, res in enumerate(search_res):
                 res_str = res.to_tagged_str(self.project_path)
@@ -399,17 +381,15 @@ class SearchManager:
         # attempt to search for this code string in all py files
         all_search_results: list[SearchResult] = []
         for file_path in self.parsed_files:
-            searched_line_and_code: list[tuple[int, str]] = (
-                search_utils.get_code_region_containing_code(file_path, code_str, show_lineno=self.show_lineno)
+            searched_line_and_code: list[tuple[int, str]] = search_utils.get_code_region_containing_code(
+                file_path, code_str, show_lineno=self.show_lineno
             )
             if not searched_line_and_code:
                 continue
             for searched in searched_line_and_code:
                 line_no, code_region = searched
                 # from line_no, check which function and class we are in
-                class_name, func_name = self.file_line_to_class_and_func(
-                    file_path, line_no
-                )
+                class_name, func_name = self.file_line_to_class_and_func(file_path, line_no)
                 res = SearchResult(file_path, class_name, func_name, code_region)
                 all_search_results.append(res)
 
@@ -424,21 +404,17 @@ class SearchManager:
 
         if len(all_search_results) > RESULT_SHOW_LIMIT:
             tool_output += "They appeared in the following files:\n"
-            tool_output += SearchResult.collapse_to_file_level(
-                all_search_results, self.project_path
-            )
+            tool_output += SearchResult.collapse_to_file_level(all_search_results, self.project_path)
         else:
             for idx, res in enumerate(all_search_results):
                 res_str = res.to_tagged_str(self.project_path)
                 tool_output += f"- Search result {idx + 1}:\n```\n{res_str}\n```\n"
         return tool_output, summary, True
 
-    def search_code_in_file(
-        self, code_str: str, file_name: str
-    ) -> tuple[str, str, bool]:
+    def search_code_in_file(self, code_str: str, file_name: str) -> tuple[str, str, bool]:
         code_str = code_str.removesuffix(")")
 
-        candidate_py_files = [f for f in self.parsed_files if f.replace('\\', '/').endswith(file_name)]
+        candidate_py_files = [f for f in self.parsed_files if f.replace("\\", "/").endswith(file_name)]
         if not candidate_py_files:
             tool_output = f"Could not find file {file_name} in the codebase."
             summary = tool_output
@@ -447,17 +423,15 @@ class SearchManager:
         # start searching for code in the filtered files
         all_search_results: list[SearchResult] = []
         for file_path in candidate_py_files:
-            searched_line_and_code: list[tuple[int, str]] = (
-                search_utils.get_code_region_containing_code(file_path, code_str, show_lineno=self.show_lineno)
+            searched_line_and_code: list[tuple[int, str]] = search_utils.get_code_region_containing_code(
+                file_path, code_str, show_lineno=self.show_lineno
             )
             if not searched_line_and_code:
                 continue
             for searched in searched_line_and_code:
                 line_no, code_region = searched
                 # from line_no, check which function and class we are in
-                class_name, func_name = self.file_line_to_class_and_func(
-                    file_path, line_no
-                )
+                class_name, func_name = self.file_line_to_class_and_func(file_path, line_no)
                 res = SearchResult(file_path, class_name, func_name, code_region)
                 all_search_results.append(res)
 
@@ -472,18 +446,14 @@ class SearchManager:
         summary = tool_output
         if len(all_search_results) > RESULT_SHOW_LIMIT:
             tool_output += "They appeared in the following methods:\n"
-            tool_output += SearchResult.collapse_to_method_level(
-                all_search_results, self.project_path
-            )
+            tool_output += SearchResult.collapse_to_method_level(all_search_results, self.project_path)
         else:
             for idx, res in enumerate(all_search_results):
                 res_str = res.to_tagged_str(self.project_path)
                 tool_output += f"- Search result {idx + 1}:\n```\n{res_str}\n```\n"
         return tool_output, summary, True
 
-    def retrieve_code_snippet(
-        self, file_path: str, start_line: int, end_line: int
-    ) -> str:
+    def retrieve_code_snippet(self, file_path: str, start_line: int, end_line: int) -> str:
         if self.is_tracking:
             self.viewed_lines.append((file_path, start_line, end_line))
         return search_utils.get_code_snippets(file_path, start_line, end_line, show_lineno=self.show_lineno)

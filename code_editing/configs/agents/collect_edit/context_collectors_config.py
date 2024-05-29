@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from code_editing.configs.agents.user_prompt_config import UserPromptConfig
+from code_editing.configs.agents.user_prompt_config import UserPromptConfig, default_user_prompt
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
 
 
@@ -23,19 +23,23 @@ class AsIsRetrievalConfig(ContextCollectorsConfig):
 @dataclass
 class LLMRetrievalConfig(ContextCollectorsConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMRetrieval"
-    search_prompt: UserPromptConfig = MISSING
+    search_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/search-reviewed"))
     do_review: bool = True
 
 
 @dataclass
 class LLMCycleRetrievalConfig(LLMRetrievalConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMCycleRetrieval"
-    review_prompt: UserPromptConfig = MISSING
+    review_prompt: UserPromptConfig = field(
+        default_factory=default_user_prompt("jbr-code-editing/search-is-sufficient")
+    )
+
 
 @dataclass
 class LLMFixedCtxRetrievalConfig(LLMRetrievalConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMFixedCtxRetrieval"
     total_context: int = 10000
+
 
 @dataclass
 class ACRRetrievalConfig(ContextCollectorsConfig):

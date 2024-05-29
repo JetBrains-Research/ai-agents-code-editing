@@ -1,15 +1,16 @@
 from pydantic import BaseModel, Field
 
 from code_editing.agents.tools.base_tool import CEBaseTool
-from code_editing.agents.tools.common import read_file, my_format_fragment, parse_file
+from code_editing.agents.tools.common import my_format_fragment, parse_file, read_file
 
 
 class ViewFileTool(CEBaseTool):
     class ViewFileToolInput(BaseModel):
         file_name: str = Field(description="File name to view", examples=["main.py", "test/benchmark/metrics.py"])
         start_index: int = Field(description="Start index of the fragment to view", examples=[0, 100])
-        context: int = Field(description="Number of lines (before and after) added to the fragment to be viewed",
-                             examples=[5, 10])
+        context: int = Field(
+            description="Number of lines (before and after) added to the fragment to be viewed", examples=[5, 10]
+        )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

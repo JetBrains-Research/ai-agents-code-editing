@@ -1,0 +1,7 @@
+defaults:
+  - /tools@acr_search_class: acr_search_class
+  - /tools@acr_search_method_in_file: acr_search_method_in_file
+  - /tools@acr_search_method_in_class: acr_search_method_in_class
+  - /tools@acr_search_method: acr_search_method
+  - /tools@acr_search_code: acr_search_code
+  - /tools@acr_search_code_in_file: acr_search_code_in_file

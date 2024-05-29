@@ -1,0 +1,87 @@
+[tool.poetry]
+name = "ai-agents-code-editing"
+version = "0.1.0"
+description = ""
+authors = ["Alexander Kovrigin <alexander.kovrigin@jetbrains.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.10"
+black = {extras = ["jupyter"], version = "^24.4.2"}
+isort = "^5.12.0"
+mypy = "^1.5.0"
+jupyter = "^1.0.0"
+pandas = "^2.0.3"
+matplotlib = "^3.7.2"
+seaborn = "^0.13.2"
+aiohttp = "^3.8.5"
+tenacity = "^8.2.3"
+requests = "^2.31.0"
+self = "^2020.12.3"
+pydriller = "^2.5"
+pyyaml = "^6.0.1"
+types-pyyaml = "^6.0.12.11"
+pytest = "^8.2.1"
+langdetect = "^1.0.9"
+chardet = "^5.2.0"
+omegaconf = "^2.3.0"
+hydra-core = "^1.3.2"
+dataclasses-json = "^0.6.1"
+datasets = "^2.14.2"
+tabulate = "^0.9.0"
+selenium = "^4.16.0"
+webdriver-manager = "^4.0.1"
+ruamel-yaml = "^0.18.5"
+xlsxwriter = "^3.1.9"
+torch = "^2.0.0"
+transformers = "^4.32.0"
+accelerate = "^0.30.1"
+packaging = "~23.2"
+code-bert-score = "^0.4.1"
+coolname = "^2.2.0"
+evaluate = "^0.4.2"
+faiss-cpu = "^1.8.0"
+filelock = "^3.14.0"
+gitpython = "^3.1.43"
+gymnasium = "^0.29.1"
+huggingface-hub = "^0.23.2"
+jedi = "^0.19.1"
+jsonlines = "^4.0.0"
+langchain = "^0.2.1"
+langchain-community = "^0.2.1"
+langchain-core = "^0.2.1"
+langchain-openai = "^0.1.7"
+langchainhub = "^0.1.16"
+langgraph = "^0.0.55"
+langsmith = "^0.1.63"
+openai = "^1.30.4"
+optimum = "^1.19.2"
+rank-bm25 = "^0.2.2"
+sacrebleu = "^2.4.2"
+tiktoken = "^0.7.0"
+tokenizers = "^0.19.1"
+tqdm = "^4.66.4"
+wandb = "^0.17.0"
+scikit-learn = "^1.5.0"
+scipy = "^1.13.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.isort]
+line_length = 120
+py_version = 310
+profile = "black"
+
+[tool.mypy]
+python_version = "3.10"
+
+[[tool.mypy.overrides]]
+module = []
+ignore_missing_imports = true

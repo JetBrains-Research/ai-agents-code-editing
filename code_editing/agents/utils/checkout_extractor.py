@@ -2,7 +2,7 @@ import tempfile
 from typing import Dict
 
 from code_editing.data_sources.extract_code_base import CodeBaseExtractor
-from code_editing.utils.git_utils import clone_repo, checkout_repo
+from code_editing.utils.git_utils import checkout_repo, clone_repo
 
 
 class CheckoutExtractor(CodeBaseExtractor):

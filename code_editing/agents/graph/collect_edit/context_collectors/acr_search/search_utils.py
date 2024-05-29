@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from os.path import join as pjoin
 from pathlib import Path
 
+
 def to_relative_path(file_path: str, project_root: str) -> str:
     """Convert an absolute path to a path relative to the project root.
 
@@ -41,17 +42,13 @@ class SearchResult:
     def to_tagged_upto_class(self, project_root: str):
         """Convert the search result to a tagged string, upto class."""
         prefix = self.to_tagged_upto_file(project_root)
-        class_part = (
-            f"<class>{self.class_name}</class>" if self.class_name is not None else ""
-        )
+        class_part = f"<class>{self.class_name}</class>" if self.class_name is not None else ""
         return f"{prefix}\n{class_part}"
 
     def to_tagged_upto_func(self, project_root: str):
         """Convert the search result to a tagged string, upto function."""
         prefix = self.to_tagged_upto_class(project_root)
-        func_part = (
-            f" <func>{self.func_name}</func>" if self.func_name is not None else ""
-        )
+        func_part = f" <func>{self.func_name}</func>" if self.func_name is not None else ""
         return f"{prefix}{func_part}"
 
     def to_tagged_str(self, project_root: str):
@@ -131,14 +128,10 @@ def find_python_files(dir_path: str) -> list[str]:
         ):
             # to walkaround issue in 'pylint-dev__pylint'
             continue
-        if rel_path.startswith("tests/roots") or rel_path.startswith(
-            "sphinx/templates/latex"
-        ):
+        if rel_path.startswith("tests/roots") or rel_path.startswith("sphinx/templates/latex"):
             # to walkaround issue in 'sphinx-doc__sphinx'
             continue
-        if rel_path.startswith("tests/test_runner_apps/tagged/") or rel_path.startswith(
-            "django/conf/app_template/"
-        ):
+        if rel_path.startswith("tests/test_runner_apps/tagged/") or rel_path.startswith("django/conf/app_template/"):
             # to walkaround issue in 'django__django'
             continue
         res.append(file)
@@ -174,11 +167,7 @@ def parse_python_file(file_full_path: str) -> tuple[list, dict, list] | None:
             classes.append((class_name, start_lineno, end_lineno))
 
             ## class part (2): collect function info inside this class
-            class_funcs = [
-                (n.name, n.lineno, n.end_lineno)
-                for n in ast.walk(node)
-                if isinstance(n, ast.FunctionDef)
-            ]
+            class_funcs = [(n.name, n.lineno, n.end_lineno) for n in ast.walk(node) if isinstance(n, ast.FunctionDef)]
             class_to_funcs[class_name] = class_funcs
 
         elif isinstance(node, ast.FunctionDef):
@@ -191,9 +180,7 @@ def parse_python_file(file_full_path: str) -> tuple[list, dict, list] | None:
     return classes, class_to_funcs, top_level_funcs
 
 
-def get_func_snippet_in_class(
-    file_full_path: str, class_name: str, func_name: str, include_lineno=False
-) -> str | None:
+def get_func_snippet_in_class(file_full_path: str, class_name: str, func_name: str, include_lineno=False) -> str | None:
     """Get actual function source code in class.
 
     All source code of the function is returned.
@@ -211,13 +198,9 @@ def get_func_snippet_in_class(
                     end_lineno = n.end_lineno
                     assert end_lineno is not None, "end_lineno is None"
                     if include_lineno:
-                        return get_code_snippets_with_lineno(
-                            file_full_path, start_lineno, end_lineno
-                        )
+                        return get_code_snippets_with_lineno(file_full_path, start_lineno, end_lineno)
                     else:
-                        return get_code_snippets(
-                            file_full_path, start_lineno, end_lineno
-                        )
+                        return get_code_snippets(file_full_path, start_lineno, end_lineno)
     # In this file, cannot find either the class, or a function within the class
     return None
 
@@ -278,9 +261,7 @@ def get_code_region_containing_code(
         context = file_content[start:end]
         if show_lineno:
             # add line numbers to the context starting from matched_line_no
-            context = "\n".join(
-                [f"{i + matched_line_no} {line}" for i, line in enumerate(context.split("\n"))]
-            )
+            context = "\n".join([f"{i + matched_line_no} {line}" for i, line in enumerate(context.split("\n"))])
         occurrences.append((matched_line_no, context))
 
     return occurrences
@@ -307,9 +288,7 @@ def get_func_snippet_with_code_in_file(file_full_path: str, code_str: str) -> li
         func_start_lineno = node.lineno
         func_end_lineno = node.end_lineno
         assert func_end_lineno is not None
-        func_code = get_code_snippets(
-            file_full_path, func_start_lineno, func_end_lineno
-        )
+        func_code = get_code_snippets(file_full_path, func_start_lineno, func_end_lineno)
         # This func code is a raw concatenation of source lines which contains new lines and tabs.
         # For the purpose of searching, we remove all spaces and new lines in the code and the
         # search string, to avoid non-match due to difference in formatting.

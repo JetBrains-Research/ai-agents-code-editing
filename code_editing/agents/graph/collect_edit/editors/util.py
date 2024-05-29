@@ -1,5 +1,5 @@
 import re
-from typing import List, Callable, Tuple, Optional
+from typing import Callable, List, Optional, Tuple
 
 from langchain_core.exceptions import OutputParserException
 from langchain_core.output_parsers import BaseOutputParser
@@ -20,7 +20,6 @@ def process_edit(file, lines_to_edit: List[int], edit_func: Callable[[str, str],
         New code for the file.
     """
     # Read the file
-    # TODO: write a test for this
     code = read_file_full(file)
     code_lines = code.split("\n")
     # Result code
@@ -34,7 +33,7 @@ def process_edit(file, lines_to_edit: List[int], edit_func: Callable[[str, str],
         assert start > 0, f"Line numbers should be 1-based, got {start}."
         # Get the snippet of code
         len1 = end - start
-        snippet = "\n".join(code_lines[start + delta_lines:end + delta_lines])
+        snippet = "\n".join(code_lines[start + delta_lines : end + delta_lines])
         # Edit the snippet
         edited_snippet = edit_func(file, snippet)
         # Replace the snippet in the result code
@@ -94,4 +93,3 @@ class MarkdownOutputParser(BaseOutputParser):
 
     key: Optional[str] = None
     pattern: str = ""
-

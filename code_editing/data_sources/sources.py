@@ -1,4 +1,6 @@
-from typing import Dict
+from typing import Dict, List, Tuple
+
+import pandas as pd
 
 from code_editing.data_sources.git_data import SimpleGitCEData
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
@@ -15,12 +17,12 @@ class LCACodeEditingDataSource(HuggingFaceSimpleGitCEDataSource):
         )
 
     def row_to_data(self, row: Dict) -> SimpleGitCEData:
-        base_hash = get_parent_commit_sha(row["repo"], row["hash"], self._data_path)
+        base_hash = get_parent_commit_sha(row["repo"], row["hash"], self.data_path)
         return SimpleGitCEData(
             message=row["message"],
             repo=row["repo"],
-            diff_true=self._get_diff(row["repo"], row["hash"], base_hash),
-            base_hash=get_parent_commit_sha(row["repo"], row["hash"], self._data_path),  # Get parent commit
+            diff_true=self._get_diff_helper(row["repo"], row["hash"], base_hash),
+            base_hash=get_parent_commit_sha(row["repo"], row["hash"], self.data_path),  # Get parent commit
         )
 
     def _row_to_repo(self, row: Dict) -> str:
@@ -97,3 +99,23 @@ class SWEBenchDataSource(HuggingFaceSimpleGitCEDataSource):
             base_hash=row["base_commit"],
             message=row["problem_statement"],
         )
+
+    def _row_to_repo(self, row: Dict) -> str:
+        return row["repo"]
+
+    def to_swebench_results(self, inference: pd.DataFrame, model_name: str) -> Tuple[List[dict], List[str]]:
+        df = inference.copy()
+        ds_df = self._dataset.to_pandas()
+        df["diff_pred"] = df["diff_pred"].apply(lambda x: x if not pd.isna(x) else "")
+        df["diff_pred"] = df["diff_pred"].apply(lambda x: x if x else "")
+        out = df["diff_pred"].to_list()
+
+        def instance_id(i):
+            return ds_df[ds_df["base_commit"] == df["base_hash"].iloc[i]]["instance_id"].iloc[0]
+
+        out = [
+            {"instance_id": instance_id(i), "model_patch": out[i], "model_name_or_path": model_name}
+            for i in range(len(out))
+        ]
+        instance_ids = [e["instance_id"] for e in out]
+        return out, instance_ids

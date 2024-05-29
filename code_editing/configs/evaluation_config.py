@@ -1,4 +1,4 @@
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict
 
 from hydra.core.config_store import ConfigStore

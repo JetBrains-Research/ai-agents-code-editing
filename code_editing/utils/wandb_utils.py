@@ -1,8 +1,8 @@
 import time
-from typing import List, Dict, Optional, Callable, Any
+from typing import Any, Callable, Dict, List, Optional
 
 import wandb
-from wandb.sdk.data_types.trace_tree import Trace, StatusCode
+from wandb.sdk.data_types.trace_tree import StatusCode, Trace
 
 from code_editing.backbones.base_backbone import CEInput
 
@@ -18,7 +18,7 @@ def is_run_active() -> bool:
 
 
 def chat_to_dict(
-        preprocessed_inputs: List[Dict[str, str]],
+    preprocessed_inputs: List[Dict[str, str]],
 ) -> Dict[str, str]:
     counters = {}
     res = {}
@@ -34,13 +34,17 @@ def chat_to_dict(
 
 
 def req_beautify(req: CEInput) -> dict:
-    return {"instruction": req["instruction"], "code_base_beautified": '\n'.join(
-        [f"* `{file_name}`\n```\n{file_contents}\n```" for file_name, file_contents in req["code_base"].items()])}
+    return {
+        "instruction": req["instruction"],
+        "code_base_beautified": "\n".join(
+            [f"* `{file_name}`\n```\n{file_contents}\n```" for file_name, file_contents in req["code_base"].items()]
+        ),
+    }
 
 
 def log_prompt_trace(
-        parent_span: Trace,
-        metadata: Optional[Dict[str, str]] = None,
+    parent_span: Trace,
+    metadata: Optional[Dict[str, str]] = None,
 ):
     def wrapper(func: Callable[[CEInput], Any]):
         def new_func(req: CEInput):
@@ -73,9 +77,9 @@ def log_prompt_trace(
 
 
 def log_llm_trace(
-        parent_span: Trace,
-        model_name: str,
-        metadata: Optional[Dict[str, str]] = None,
+    parent_span: Trace,
+    model_name: str,
+    metadata: Optional[Dict[str, str]] = None,
 ):
     def wrapper(func):
 
@@ -108,10 +112,10 @@ def log_llm_trace(
 
 
 def build_main_trace(
-        req: CEInput,
-        start_ms: int,
-        name: str,
-        metadata: Optional[Dict[str, str]] = None,
+    req: CEInput,
+    start_ms: int,
+    name: str,
+    metadata: Optional[Dict[str, str]] = None,
 ):
     return Trace(
         name=f"Code Editing: {name}",
@@ -124,11 +128,11 @@ def build_main_trace(
 
 
 def log_preprocessor_trace(
-        before: CEInput,
-        after: CEInput,
-        start_ms: int,
-        end_ms: int,
-        parent_span: Trace,
+    before: CEInput,
+    after: CEInput,
+    start_ms: int,
+    end_ms: int,
+    parent_span: Trace,
 ):
     if not is_run_active():
         return
@@ -155,13 +159,13 @@ def log_main_trace(root_span, old_req, resp, status_code, status_message=None):
 
 
 def gpt4_eval_trace(
-        diff_true: str,
-        diff_pred: str,
-        start_ms: int,
-        end_ms: int,
-        score_text: str,
-        score_value: Optional[float],
-        metadata: Optional[Dict[str, str]] = None,
+    diff_true: str,
+    diff_pred: str,
+    start_ms: int,
+    end_ms: int,
+    score_text: str,
+    score_value: Optional[float],
+    metadata: Optional[Dict[str, str]] = None,
 ):
     if not is_run_active():
         return

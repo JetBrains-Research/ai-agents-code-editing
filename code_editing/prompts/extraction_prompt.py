@@ -15,16 +15,21 @@ class CodeFragmentCEPrompt(SimpleCEPrompt):
         super().__init__(max_new_tokens)
 
     def _chat(self, req: CEInput) -> List[ChatMessage]:
-        code = '\n'.join(
-            [self.file_to_prompt(file_name, file_content) for file_name, file_content in req["code_base"].items()])
+        code = "\n".join(
+            [self.file_to_prompt(file_name, file_content) for file_name, file_content in req["code_base"].items()]
+        )
         return [
-            {"role": "system",
-             "content": "You will edit the code fragments to follow the provided instruction. Please print out the "
-                        "edited code fragments in the same format. Don't change the file names or the line numbers. "
-                        "Break down the task into smaller steps first and then edit the code fragments accordingly. "},
-            {"role": "user",
-             "content": f"INSTRUCTION: {req['instruction']}\nCODE: {code}\n DONE: Now please provide the edited code "
-                        f"fragments in the same format."}
+            {
+                "role": "system",
+                "content": "You will edit the code fragments to follow the provided instruction. Please print out the "
+                "edited code fragments in the same format. Don't change the file names or the line numbers. "
+                "Break down the task into smaller steps first and then edit the code fragments accordingly. ",
+            },
+            {
+                "role": "user",
+                "content": f"INSTRUCTION: {req['instruction']}\nCODE: {code}\n DONE: Now please provide the edited code "
+                f"fragments in the same format.",
+            },
         ]
 
     def postprocess(self, req: CEInput, resp: CEOutput) -> CEOutput:
@@ -35,13 +40,13 @@ def to_diff(req: CEInput, resp: CEOutput) -> CEOutput:
     # TODO: write tests for this function (very complex)
     # Convert many updated files to a diff
 
-    old_code_base = req['code_base'].copy()
+    old_code_base = req["code_base"].copy()
 
-    mods = re.findall(r'\[start of (.*?)]\n(.*?)\n\[end of \1]', resp['prediction'], flags=re.DOTALL)
+    mods = re.findall(r"\[start of (.*?)]\n(.*?)\n\[end of \1]", resp["prediction"], flags=re.DOTALL)
     # Group the modifications by file
     files = defaultdict(list)
     for file_name_line, file_content in mods:
-        file_name, lines = file_name_line.split('#')
+        file_name, lines = file_name_line.split("#")
         files[file_name].append((lines, file_content))
 
     # Build the diff file by file
@@ -59,8 +64,8 @@ def to_diff(req: CEInput, resp: CEOutput) -> CEOutput:
             if old_lines is None:
                 # The code fragment was not in the original code, LLM broke it
                 continue
-            old_lines = old_lines.split('\n')
-            new_lines = new_code.split('\n')
+            old_lines = old_lines.split("\n")
+            new_lines = new_code.split("\n")
 
             # Get the start line of the code fragment in the reference code
             ref_start = int(lines[1:])
@@ -71,7 +76,7 @@ def to_diff(req: CEInput, resp: CEOutput) -> CEOutput:
             if len(diff_lines) <= 3:
                 # No changes
                 continue
-            block_diff = '\n'.join(diff_lines[2:])
+            block_diff = "\n".join(diff_lines[2:])
 
             # Modifying the headers
             def replace_line_numbers(match: re.Match[str]):
@@ -86,16 +91,17 @@ def to_diff(req: CEInput, resp: CEOutput) -> CEOutput:
                 old_start_fragment += ref_start - 1
                 new_start_fragment += ref_start - 1 + delta_lines
                 delta_lines += new_length - old_length
-                return f'@@ -{old_start_fragment},{old_length} +{new_start_fragment},{new_length} @@'
+                return f"@@ -{old_start_fragment},{old_length} +{new_start_fragment},{new_length} @@"
 
-            modified_block_diff = re.sub(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@\n', replace_line_numbers,
-                                         block_diff, flags=re.DOTALL)
+            modified_block_diff = re.sub(
+                r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@\n", replace_line_numbers, block_diff, flags=re.DOTALL
+            )
             file_diff.append(modified_block_diff)
-        file_diff = '\n'.join(file_diff)
+        file_diff = "\n".join(file_diff)
         if file_diff:
             # If there are changes, add the file diff to the final diff
             final_diff += f"diff --git a/{file_name} b/{file_name}\n"
             final_diff += f"--- a/{file_name}\n+++ b/{file_name}\n"
             final_diff += f"{file_diff}\n"
-    resp['prediction'] = f"```diff\n{final_diff}\n```"
+    resp["prediction"] = f"```diff\n{final_diff}\n```"
     return resp

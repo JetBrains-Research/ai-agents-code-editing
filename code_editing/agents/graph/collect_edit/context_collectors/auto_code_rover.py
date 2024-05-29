@@ -2,9 +2,9 @@
 import ast
 import inspect
 import re
-from typing import List, Any, Optional
+from typing import Any, List, Optional
 
-from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
@@ -227,7 +227,11 @@ class ACRRetrieval(GraphFactory):
                         collated_tool_response += f"\n\n{tool_output}\n"
 
                     if "Unknown function" in collated_tool_response or "Could not" in collated_tool_response:
-                        messages.append(HumanMessage("The buggy locations is not precise. You may need to check whether the arguments are correct and search more information."))
+                        messages.append(
+                            HumanMessage(
+                                "The buggy locations is not precise. You may need to check whether the arguments are correct and search more information."
+                            )
+                        )
                         state["is_sufficient"] = False
 
                 return state

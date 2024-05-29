@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Optional, Iterable, List, Tuple, Dict
+from typing import Dict, Iterable, List, Optional, Tuple
 
 
 def extract_patch(resp: str) -> Optional[str]:

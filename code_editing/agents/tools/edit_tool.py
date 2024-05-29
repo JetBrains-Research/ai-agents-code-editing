@@ -3,7 +3,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from code_editing.agents.tools.base_tool import CEBaseTool
-from code_editing.agents.tools.common import read_file, my_format_fragment, parse_file
+from code_editing.agents.tools.common import my_format_fragment, parse_file, read_file
 from code_editing.backbones import CEBackbone
 
 
@@ -11,12 +11,14 @@ class EditTool(CEBaseTool):
     class EditToolInput(BaseModel):
         file_name: str = Field(description="File name to edit", examples=["main.py", "test/benchmark/metrics.py"])
         start_index: int = Field(description="Start index of the fragment to edit", examples=[0, 100])
-        instruction: str = Field(description="Instruction for the editing LLM",
-                                 examples=["Replace the for loop with a while loop"])
+        instruction: str = Field(
+            description="Instruction for the editing LLM", examples=["Replace the for loop with a while loop"]
+        )
         context: int = Field(
             description="Number of lines (before and after) added to the fragment to be edited",
             default=5,
-            examples=[5, 10])
+            examples=[5, 10],
+        )
 
     name = "edit-fragment"
     description = """Edit a fragment of code based on the given instruction.
@@ -46,18 +48,12 @@ class EditTool(CEBaseTool):
         contents, lines, start, end = read_file(context, file, start_index)
         # Send to the editing LLM
         resp = self.backbone.generate_diff(
-            {
-                "instruction": instruction,
-                "code_base": {
-                    file_name: contents
-                }
-            },
-            parent_span=self.root_span
+            {"instruction": instruction, "code_base": {file_name: contents}}, parent_span=self.root_span
         )
         new_contents = resp["prediction"]
         # Save
-        with open(file, 'w') as f:
-            f.write(''.join(lines[:start]) + new_contents + ''.join(lines[end:]))
+        with open(file, "w") as f:
+            f.write("".join(lines[:start]) + new_contents + "".join(lines[end:]))
         # Reindex
         self.retrieval_helper.add_changed_file(file)
         # Return the new fragment

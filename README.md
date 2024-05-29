@@ -1,41 +1,27 @@
-# Code Editing
+# On The Importance of Reasoning for Context Retrieval in Repository-Level Code Editing
+This repository contains the code for the paper
+"On The Importance of Reasoning for Context Retrieval in Repository-Level Code Editing".
 
-This project contains a set of code editing tools implemented in Python.
+We provide a comprehensive evaluation of the context retrieval task with different reasoning strategies.
 
-## Usage
+This framework can be further extended to evaluate other context retrieval models for code editing.
 
-### Inference
-This project contains a set of scripts for running inference using different interaction strategies and backbones.
-The scripts use Hydra for configuration. They produce a JSONL file containing the predicted diffs.
-#### Baselines
-
-To run a baseline, use the `run_baseline.py` script.
-
-Example usage:
+## How to Use
+### Installation
+This project uses [`poetry`](https://python-poetry.org/) for dependency management. To install the dependencies, run:
 
 ```bash
-python scripts/run_baseline.py backbone=llama7 data_source=lca_code_editing preprocessor=truncate backbone/prompt=fewshot2
+poetry install
 ```
-#### Agents
 
-To run an agent, use the `run_agent.py` script.
-This scripts uses Hydra for configuration.
-
-Example usage:
+To activate the virtual environment, run:
 
 ```bash
-python scripts/run_agent.py backbone=llama7 data_source=lca_code_editing
+poetry shell
 ```
 
-To view all available options, take a look at the `scripts/conf` directory.
+### Quick Start
 
-### Evaluation
+TODO
 
-To evaluate the results, use the `run_evaluation.py` script.
-The script outputs a JSON containing the evaluation results for various metrics specified in the configuration.
-
-Example usage:
-
-```bash
-python scripts/run_evaluation.py input_path=inference.csv
-```
+[//]: # (TODO: Citation)

@@ -1,7 +1,7 @@
 import logging
-from typing import Union, Dict, List
+from typing import Dict, List, Union
 
-from hydra.utils import instantiate, get_class
+from hydra.utils import get_class, instantiate
 from langchain_core.runnables import RunnableConfig
 
 from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_manage import SearchManager
@@ -12,7 +12,7 @@ from code_editing.backbones.base_backbone import CEInput, CEOutput
 from code_editing.baseline.baseline import CodeEditor
 from code_editing.configs.agents.loader_config import LoaderConfig
 from code_editing.configs.agents.retrieval_config import RetrievalConfig
-from code_editing.utils.git_utils import lock_repo, get_head_diff_unsafe, reset_to_head_unsafe
+from code_editing.utils.git_utils import get_head_diff_unsafe, reset_to_head
 from code_editing.utils.wandb_utils import log_codeeditor_trace
 
 
@@ -88,26 +88,25 @@ class AgentCodeEditor(CodeEditor):
         # Build the graph runnable
         app = self.graph_factory.tools(tools).build(retrieval_helper=retrieval_helper)
 
-        with lock_repo(repo_path, self.data_path):
-            # Invoke the graph
-            res = app.invoke(
-                input={"instruction": req["instruction"]},
-                config=RunnableConfig(
-                    tags=self.tags,
-                    metadata=self._metadata,
-                    run_name=self.run_name,
-                    recursion_limit=1024,
-                ),
-            )
-            # Get diff
-            diff = get_head_diff_unsafe(repo_path, self.data_path)
-            # Get lines viewed
-            viewed_lines = res.get("collected_context", None)
-            if viewed_lines is None:
-                logging.warning("No viewed lines found in the graph output")
-                viewed_lines = retrieval_helper.viewed_lines
-            # Reset the repository to the head commit
-            reset_to_head_unsafe(repo_path, self.data_path)
+        # Invoke the graph
+        res = app.invoke(
+            input={"instruction": req["instruction"]},
+            config=RunnableConfig(
+                tags=self.tags,
+                metadata=self._metadata,
+                run_name=self.run_name,
+                recursion_limit=1024,
+            ),
+        )
+        # Get diff
+        diff = get_head_diff_unsafe(repo_path, self.data_path)
+        # Get lines viewed
+        viewed_lines = res.get("collected_context", None)
+        if viewed_lines is None:
+            logging.warning("No viewed lines found in the graph output")
+            viewed_lines = retrieval_helper.viewed_lines
+        # Reset the repository to the head commit
+        reset_to_head(repo_path, self.data_path)
 
         return {"prediction": diff, "viewed_lines": viewed_lines}
 

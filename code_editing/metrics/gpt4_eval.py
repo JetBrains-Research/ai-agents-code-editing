@@ -35,7 +35,7 @@ class GPT4EvaluationMetric(BaseSentenceMetric):
                 {
                     "role": "user",
                     "content": self.user_prompt_template.format(TRUE=diff_true, PRED=patch),
-                }
+                },
             ],
             model=self.model_name,
         )
@@ -50,8 +50,9 @@ class GPT4EvaluationMetric(BaseSentenceMetric):
                 res = float(found[0])
                 # Log to W&B
                 if wandb.run is not None:
-                    wandb_utils.gpt4_eval_trace(diff_true, patch, start_ms, end_ms, response, res,
-                                                metadata={"model": self.model_name})
+                    wandb_utils.gpt4_eval_trace(
+                        diff_true, patch, start_ms, end_ms, response, res, metadata={"model": self.model_name}
+                    )
                 return res
             except:
                 pass

@@ -12,6 +12,7 @@ from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
 @dataclass
 class BackboneConfig:
     """Base config for instantiating a backbone. Should be extended for each case."""
+
     _target_: str = MISSING
     prompt: Optional[PromptConfig] = None
     model_name: str = MISSING

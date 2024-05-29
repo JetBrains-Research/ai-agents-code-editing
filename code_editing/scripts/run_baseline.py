@@ -6,10 +6,10 @@ dotenv.load_dotenv()
 
 from code_editing.backbones import CEBackbone
 from code_editing.baseline import CEBaseline
+from code_editing.configs.baseline_config import RunBaselineConfig
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.extract_code_base import CodeBaseExtractor
-from code_editing.scripts.common import inference_loop, init_wandb, finish_wandb, init_output_path
-from code_editing.configs.baseline_config import RunBaselineConfig
+from code_editing.scripts.common import finish_wandb, inference_loop, init_output_path, init_wandb
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="baseline")

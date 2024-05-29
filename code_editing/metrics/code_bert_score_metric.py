@@ -3,7 +3,7 @@ from typing import List
 import code_bert_score
 
 from code_editing.metrics.base_metric import BaseMetric
-from code_editing.metrics.utils import extract_patches, compare_diffs
+from code_editing.metrics.utils import compare_diffs, extract_patches
 
 
 class CodeBertScoreMetric(BaseMetric):
@@ -12,6 +12,7 @@ class CodeBertScoreMetric(BaseMetric):
 
     It is a wrapper around the code_bert_score library.
     """
+
     def __init__(self, lang: str = "python", **kwargs):
         self._lang = lang
 
@@ -27,6 +28,7 @@ class CodeBertScoreFileMetric(BaseMetric):
 
     It is a wrapper around the code_bert_score library.
     """
+
     def __init__(self, lang: str = "python", **kwargs):
         self._lang = lang
 

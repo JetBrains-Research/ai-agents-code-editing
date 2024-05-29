@@ -2,21 +2,21 @@ import dotenv
 import hydra
 import omegaconf
 from hydra.utils import instantiate
-from langchain.agents import create_openai_tools_agent
 from langchain_core.language_models import BaseLanguageModel
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 dotenv.load_dotenv()
 
-from code_editing.backbones import CEBackbone
-from code_editing.agents.graph.graph_factory import GraphFactory
-from code_editing.configs.agents.agent_config import RunAgentConfig
 from code_editing.agents.agent_codeeditor import AgentCodeEditor
+from code_editing.agents.graph.graph_factory import GraphFactory
 from code_editing.agents.utils.chat_prompt import ChatPromptFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
-from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
+from code_editing.backbones import CEBackbone
+from code_editing.configs.agents.agent_config import RunAgentConfig
 from code_editing.data_sources.base_source import CEDataSource
-from code_editing.scripts.common import inference_loop, init_wandb, finish_wandb, init_output_path, get_cool_name
+from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
+from code_editing.scripts.common import finish_wandb, get_cool_name, inference_loop, init_output_path, init_wandb
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="agents")
@@ -34,7 +34,6 @@ def main(cfg: RunAgentConfig):
     llm: BaseLanguageModel = instantiate(cfg.llm)
     backbone: CEBackbone = instantiate(cfg.backbone)
 
-    placeholder_tools = tool_factory.preview
     chat_prompt = prompt_factory.build()
 
     # Set up the graph factory for the agent interactions
@@ -50,7 +49,6 @@ def main(cfg: RunAgentConfig):
         graph_factory.name,
         prompt_factory.name,
         type(llm).__name__,
-        backbone.name,
         *tool_factory.short_names,  # all the tool names
     ]
     metadata = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
@@ -82,12 +80,13 @@ def main(cfg: RunAgentConfig):
     init_wandb(cfg, run_name, tags=tags)
 
     # Perform inference loop and save predictions
-    inference_loop(
-        code_editor,
-        data_source,
-        output_path,
-        cfg.inference,
-    )
+    with logging_redirect_tqdm():
+        inference_loop(
+            code_editor,
+            data_source,
+            output_path,
+            cfg.inference,
+        )
     finish_wandb()
 
 

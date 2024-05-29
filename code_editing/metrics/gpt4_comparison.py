@@ -1,7 +1,7 @@
 import logging
 import re
 from textwrap import dedent
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import pandas as pd
 from openai import OpenAI

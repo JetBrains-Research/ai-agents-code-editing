@@ -4,7 +4,7 @@ from typing import List
 import evaluate
 
 from code_editing.metrics.base_metric import BaseMetric
-from code_editing.metrics.utils import extract_patches, compare_diffs
+from code_editing.metrics.utils import compare_diffs, extract_patches
 
 
 class ChrfMetric(BaseMetric):

@@ -1,16 +1,16 @@
 import json
 import logging
 from abc import ABC
-from typing import List, Any
+from typing import Any, List
 
 import jedi
 import numpy as np
-from sklearn.metrics import recall_score, precision_score, f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
 from code_editing.metrics.base_metric import BaseSentenceMetric
-from code_editing.metrics.utils import extract_patch, edited_lines_per_file
+from code_editing.metrics.utils import edited_lines_per_file, extract_patch
 from code_editing.utils.git_utils import get_repo_spec_content_on_commit
 from code_editing.utils.tokenization_utils import TokenizationUtils
 

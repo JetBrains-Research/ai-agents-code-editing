@@ -14,8 +14,7 @@ class SimpleCEPrompt(CEPrompt):
 
     def _base_prompt(self, req: CEInput) -> str:
         message, context = req["instruction"], req["code_base"]
-        code = '\n'.join(
-            [self.file_to_prompt(file_name, file_content) for file_name, file_content in context.items()])
+        code = "\n".join([self.file_to_prompt(file_name, file_content) for file_name, file_content in context.items()])
         return prompt_utils.user_prompt_template.format(INSTRUCTION=message, CODE=code)
 
     @abstractmethod
@@ -26,13 +25,13 @@ class SimpleCEPrompt(CEPrompt):
         res = self._chat(req)
         if not has_system_prompt:
             res = [
-                      {"role": "user", "content": res[0]["content"]},
-                      {"role": "assistant", "content": "Understood. Please provide the code base and instruction."}
-                  ] + res[1:]
+                {"role": "user", "content": res[0]["content"]},
+                {"role": "assistant", "content": "Understood. Please provide the code base and instruction."},
+            ] + res[1:]
         return res
 
     def file_to_prompt(self, file_name: str, file_content: str) -> str:
-        return f'[start of {file_name}]\n{file_content}\n[end of {file_name}]'
+        return f"[start of {file_name}]\n{file_content}\n[end of {file_name}]"
 
 
 class ZeroShotCEPrompt(SimpleCEPrompt):
@@ -44,7 +43,7 @@ class ZeroShotCEPrompt(SimpleCEPrompt):
     def _chat(self, req: CEInput) -> List[ChatMessage]:
         return [
             {"role": "system", "content": prompt_utils.zero_shot_sys_prompt},
-            {"role": "user", "content": self._base_prompt(req)}
+            {"role": "user", "content": self._base_prompt(req)},
         ]
 
 
@@ -69,26 +68,24 @@ class FewShotCEPrompt(SimpleCEPrompt):
             {
                 "role": "user",
                 "content": self._base_prompt(
-                    CEInput(instruction=self.example_instruction, code_base=self.example_code_base)),
+                    CEInput(instruction=self.example_instruction, code_base=self.example_code_base)
+                ),
             },
-            {
-                "role": "assistant",
-                "content": self.expected_output
-            },
+            {"role": "assistant", "content": self.expected_output},
             {
                 "role": "user",
-                "content": "Good. Disregard and forget previous gcd code base and instruction. It was for example purposes only. " + self._base_prompt(
-                    req),
-            }
+                "content": "Good. Disregard and forget previous gcd code base and instruction. It was for example purposes only. "
+                + self._base_prompt(req),
+            },
         ]
 
     def file_to_prompt(self, file_name: str, file_content: str) -> str:
         content_numbered = self.add_line_numbers(file_content)
-        return f'[start of {file_name}]\n{content_numbered}\n[end of {file_name}]'
+        return f"[start of {file_name}]\n{content_numbered}\n[end of {file_name}]"
 
     def add_line_numbers(self, code: str) -> str:
         lines = code.splitlines(keepends=True)
-        return ''.join(f"<{i + 1}> {line}" for i, line in enumerate(lines))
+        return "".join(f"<{i + 1}> {line}" for i, line in enumerate(lines))
 
 
 class FewShotCEPrompt2(FewShotCEPrompt):

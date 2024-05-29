@@ -1,39 +1,13 @@
 defaults:
-  - base_agent
-  - data_source: swe_bench
-  - llm: gpt-3.5-turbo-16k
-  - retrieval: bm25
-  # Graph
+  - agent_common
   - graph: collect_edit
   - graph/context_collector: llm_fixed_ctx_retrieval
   - graph/editor: simple_editor
-  # Backbone
-  - backbone: openai-gpt-3.5-turbo
-  - backbone/prompt: simple_agent
-
-  - tools@tools.code_search: code_search
-  # Other tools
+  - tools: retrieval_search
   - _self_
 
-chat_prompt:
-  owner_repo_commit: "hwchase17/openai-tools-agent"
-
-tools:
-  code_search:
-    do_add_to_viewed: false
-
 graph:
-  editor:
-    edit_prompt:
-      owner_repo_commit: "jbr-code-editing/edit"
   context_collector:
     search_prompt:
       owner_repo_commit: "jbr-code-editing/search-total-context"
     total_context: 500
-
-retrieval:
-  splitter:
-    _target_: "langchain.text_splitter.RecursiveCharacterTextSplitter"
-    chunk_size: 512
-    chunk_overlap: 128
-    add_start_index: true

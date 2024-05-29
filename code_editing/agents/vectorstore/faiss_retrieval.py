@@ -24,9 +24,7 @@ class FaissRetrieval(RetrievalHelper):
     def search(self, query: str, k: int, run_manager=None, callbacks=None) -> List[Document]:
         if run_manager is not None:
             callbacks = run_manager.get_child()
-        return self.db.as_retriever(k=k).get_relevant_documents(
-            query, callbacks=callbacks
-        )
+        return self.db.as_retriever(k=k).get_relevant_documents(query, callbacks=callbacks)
 
     def _init_db(self):
         logging.getLogger("faiss.loader").setLevel(logging.WARNING)

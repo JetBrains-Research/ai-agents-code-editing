@@ -1,13 +1,13 @@
-import concurrent
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import coolname
-import hydra
 import omegaconf
 import pandas as pd
 import wandb
+from hydra.core.hydra_config import HydraConfig
 from tqdm import tqdm
 
 from code_editing.baseline.baseline import CodeEditor
@@ -15,6 +15,8 @@ from code_editing.configs.inference_config import InferenceConfig
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
 from code_editing.utils import wandb_utils
+
+logger = logging.getLogger("inference")
 
 
 def get_cool_name():
@@ -27,6 +29,7 @@ def inference_loop(
     output_path: str,
     inference_config: InferenceConfig,
 ):
+    hydra_output_dir = HydraConfig.get().runtime.output_dir
     """
     Perform inference loop over the dataset for code editing.
     """
@@ -45,19 +48,21 @@ def inference_loop(
     num_added = 0
 
     def process_datapoint(i):
-        X, raw_data = data_source[start + i]
-        datapoints[i] = X, raw_data
-        return code_editor.generate_diff(X)
+        repo_lock = data_source.get_lock(i)
+        with repo_lock:
+            datapoints[i] = data_source[i]
+            inp = data_source.data_to_input(datapoints[i])
+            return code_editor.generate_diff(inp)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=inference_config.num_workers) as executor:
-        queue = [(executor.submit(process_datapoint, i), i) for i in range(end - start)]
+    with ThreadPoolExecutor(max_workers=inference_config.num_workers) as executor:
+        queue = [(executor.submit(process_datapoint, i), i) for i in range(start, end)]
         while queue:
             task_index = {task: i for (task, i) in queue}
             queue = []
-            logging.info(
+            logger.info(
                 f"Waiting for {len(task_index)} tasks to complete using {inference_config.num_workers} workers..."
             )
-            for task in concurrent.futures.as_completed(task_index):
+            for task in as_completed(task_index):
                 i = task_index[task]
                 # Get the result
                 y_pred = None
@@ -68,27 +73,25 @@ def inference_loop(
                     if y_pred.strip() == "":
                         raise ValueError("Empty prediction")
                 except Exception as e:
-                    logging.warning(f"Error in inference for #{start + i}", exc_info=e)
+                    if "Empty prediction" in str(e):
+                        logger.warning(f"Empty prediction for #{i}")
+                    else:
+                        logger.warning(f"Error in inference for #{i}", exc_info=e)
                     tries[i] += 1
                     if tries[i] < inference_config.num_tries:
                         queue.append((executor.submit(process_datapoint, i), i))
                         continue
                     else:
-                        logging.error(f"Failed to predict for #{start + i}")
+                        logger.error(f"Failed to predict for #{i}")
 
-                _, raw_data = datapoints[i]
+                data = datapoints[i]
                 # Store the results
                 viewed_lines = res.get("viewed_lines", {})
                 viewed_lines = json.dumps({k: list(v) for k, v in viewed_lines.items() if v})
-                try:
-                    data = data_source.row_to_data(raw_data)
-                    y_true = data_source.row_to_diff(raw_data)
-                    df.loc[i] = [y_pred, y_true, data.repo, data.base_hash, data.message, viewed_lines]
-                except Exception as e:
-                    logging.warning(f"Error in saving the results for #{i}", exc_info=e)
+                df.loc[i - start] = [y_pred, data.diff_true, data.repo, data.base_hash, data.message, viewed_lines]
                 # Update the progress bar
-                progress_bar.update(1)
                 num_added += 1
+                progress_bar.update(1)
                 progress_bar.set_postfix_str(f"latest: {i} {data.repo}@{data.base_hash[:8]}")
 
                 # Save the checkpoint
@@ -98,9 +101,10 @@ def inference_loop(
                     and num_added % inference_config.checkpoint_iters == 0
                 ):
                     hydra_output_path = os.path.join(
-                        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, os.path.basename(output_path) + f".checkpoint_{num_added}"
+                        hydra_output_dir,
+                        os.path.basename(output_path) + f".checkpoint_{num_added}.jsonl",
                     )
-                    logging.info(f"Saving the checkpoint to {hydra_output_path}")
+                    logger.info(f"Saving the checkpoint to {hydra_output_path}")
                     my_save_jsonl(df, hydra_output_path)
 
     # Save the results to wandb
@@ -110,12 +114,24 @@ def inference_loop(
     # Return the prepared dataframe
     my_save_jsonl(df, output_path)
     # Save to hydra output path
-    hydra_output_path = os.path.join(
-        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, os.path.basename(output_path)
-    )
+    hydra_output_path = os.path.join(hydra_output_dir, os.path.basename(output_path))
     my_save_jsonl(df, hydra_output_path)
 
-    logging.info(f"Saved the results to {output_path}")
+    # SWEBench specific
+    if hasattr(data_source, "to_swebench_results"):
+        model_name = code_editor.run_name.replace(" ", "-").replace("/", "-").lower()
+        swebench_results, instance_ids = data_source.to_swebench_results(df, model_name)
+        # save predictions in SWEBench format
+        swebench_output_path = os.path.join(hydra_output_dir, f"swebench_preds_{model_name}.json")
+        with open(swebench_output_path, "w") as f:
+            json.dump(swebench_results, f)
+        # save instance ids
+        instance_ids_path = os.path.join(hydra_output_dir, f"swe_tasks.txt")
+        with open(instance_ids_path, "w") as f:
+            f.write("\n".join(instance_ids))
+        # log the paths
+        logger.info(f"Saved the predictions in SWEBench format to {swebench_output_path}")
+    logger.info(f"Saved the results to {hydra_output_path}")
     return df
 
 

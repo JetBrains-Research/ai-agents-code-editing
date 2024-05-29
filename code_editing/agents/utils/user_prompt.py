@@ -1,8 +1,8 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 from langchain import hub
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda, Runnable
+from langchain_core.runnables import Runnable, RunnableLambda
 
 
 class PromptWrapper:

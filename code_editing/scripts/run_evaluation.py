@@ -7,13 +7,14 @@ import hydra
 import omegaconf
 import pandas as pd
 import wandb
+from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from tqdm import tqdm
 
 dotenv.load_dotenv()
 
-from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.configs.evaluation_config import RunEvaluationConfig
+from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.metrics.base_metric import BaseMetric
 
 
@@ -46,6 +47,11 @@ def main(cfg: RunEvaluationConfig):
         name = os.path.split(cfg.input_path)[-2]
         wandb.run.name = f"Eval {name}"
 
+    # Lock all repositories in the data source
+    locks = data_source.all_locks()
+    for lock in locks:
+        lock.acquire()
+
     # Iterate through metrics
     for name, metric_conf in pbar:
         pbar.set_postfix_str(name)
@@ -58,10 +64,14 @@ def main(cfg: RunEvaluationConfig):
             logging.error(f"Failed to run metric {name}", exc_info=e)
             res[name] = None
 
+    # Release all locks in the data source
+    for lock in locks:
+        lock.release()
+
     res_json = json.dumps(res, indent=2)
     print(res_json)
     # Save the results to the output path
-    hydra_output_path = os.path.join(hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, "eval.json")
+    hydra_output_path = os.path.join(HydraConfig.get().runtime.output_dir, "eval.json")
     with open(hydra_output_path, "w") as f:
         f.write(res_json)
 

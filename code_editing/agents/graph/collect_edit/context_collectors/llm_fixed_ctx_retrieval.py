@@ -1,9 +1,9 @@
 from langchain.memory import ConversationBufferMemory
 from langchain_core.runnables import RunnableLambda
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 
 from code_editing.agents.graph.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
-from code_editing.agents.tools.common import read_file_full, parse_file
+from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
 
@@ -27,8 +27,8 @@ class LLMFixedCtxRetrieval(LLMRetrieval):
 
         workflow = StateGraph(dict)
 
-
         searches_counter = 0
+
         def search(state):
             nonlocal searches_counter
             searches_counter += 1
@@ -55,9 +55,7 @@ class LLMFixedCtxRetrieval(LLMRetrieval):
             return state.get("context_size", 0) < self.total_context and searches_counter < self.max_searches
 
         workflow.add_node("search", RunnableLambda(search, name="search"))
-        workflow.add_conditional_edges(
-            "search", do_continue, {True: "search", False: END}
-        )
+        workflow.add_conditional_edges("search", do_continue, {True: "search", False: END})
         workflow.set_entry_point("search")
 
         return workflow.compile() | {"collected_context": lambda _: retrieval_helper.viewed_lines}

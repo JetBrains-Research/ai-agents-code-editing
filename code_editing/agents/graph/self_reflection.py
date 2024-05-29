@@ -1,12 +1,12 @@
 from operator import itemgetter
 
-from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
-from langchain_community.chat_message_histories.in_memory import ChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableLambda
-from langgraph.graph import StateGraph, END
+from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.graph_factory import GraphFactory, AgentInput
+from code_editing.agents.graph.graph_factory import AgentInput, GraphFactory
 from code_editing.agents.utils.user_prompt import PromptWrapper
 
 
@@ -34,7 +34,7 @@ class SelfReflection(GraphFactory):
         self.review_prompt = review_prompt
 
     def build(self, *args, **kwargs):
-        memory = ChatMessageHistory()
+        memory = InMemoryChatMessageHistory()
         agent_executor = self._agent_executor(memory=memory)
 
         def agent_init_step(inp: AgentInput) -> SelfReflectionState:

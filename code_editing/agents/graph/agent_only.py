@@ -2,7 +2,7 @@ from typing import Any
 
 from langchain_core.runnables import Runnable
 
-from code_editing.agents.graph.graph_factory import GraphFactory, AgentInput
+from code_editing.agents.graph.graph_factory import AgentInput, GraphFactory
 from code_editing.agents.utils.user_prompt import PromptWrapper
 
 

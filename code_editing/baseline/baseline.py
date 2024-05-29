@@ -1,4 +1,4 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 import wandb
 from wandb.sdk.data_types.trace_tree import StatusCode
@@ -10,6 +10,8 @@ from code_editing.utils import wandb_utils
 
 
 class CodeEditor(ABC):
+    run_name = "base"
+
     @abstractmethod
     def generate_diff(self, req: CEInput) -> CEOutput:
         pass
@@ -23,15 +25,21 @@ class CEBaseline(CodeEditor):
     def __init__(self, backbone: CEBackbone, preprocessor: CEPreprocessor):
         self.backbone = backbone
         self.preprocessor = preprocessor
+        self.run_name = backbone.name
 
     def generate_diff(self, req: CEInput) -> CEOutput:
         # Initialize the root span for W&B
         root_span = None
         if wandb.run is not None:
-            root_span = wandb_utils.build_main_trace(req, wandb_utils.get_current_ms(), "Code Editing", metadata={
-                "preprocessor_name": self.preprocessor.name,
-                "backbone_name": self.backbone.name,
-            })
+            root_span = wandb_utils.build_main_trace(
+                req,
+                wandb_utils.get_current_ms(),
+                "Code Editing",
+                metadata={
+                    "preprocessor_name": self.preprocessor.name,
+                    "backbone_name": self.backbone.name,
+                },
+            )
 
         # Preprocess the input
         start_ms = wandb_utils.get_current_ms()

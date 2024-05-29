@@ -3,13 +3,11 @@ from dataclasses import dataclass, field
 from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from code_editing.configs.backbones_configs import (
-    BackboneConfig,
-)
+from code_editing.configs.backbones_configs import BackboneConfig
 from code_editing.configs.data_source_configs import DataSourceConfig
 from code_editing.configs.extractor_config import ExtractorConfig
 from code_editing.configs.inference_config import InferenceConfig
-from code_editing.configs.preprocessor_config import TruncationPreprocessorConfig, PreprocessorConfig
+from code_editing.configs.preprocessor_config import PreprocessorConfig, TruncationPreprocessorConfig
 
 
 @dataclass
