@@ -22,6 +22,54 @@ poetry shell
 
 ### Quick Start
 
-TODO
+To run the experiments, use the following command:
+
+```bash
+export PYTHONPATH=.
+export CE_DATA_PATH=cache_dir
+
+python code_editing/scripts/run_agent.py
+```
+
+Our framework uses the `hydra` library for configuration management. You can customize the configuration by modifying the `code_editing/scripts/conf` directory.
+
+To run the experiments with a specific configuration, use the following command:
+
+```bash
+python code_editing/scripts/run_agent.py -cn <config_name> tools=<toolkit> data_source=<data_source>
+```
+
+Available configuration names are:
+- `baseline` (bm25 retrieval with unmodified query)
+- `agent` (tool call criterion)
+- `agent_cl` (context length criterion)
+- `agent_sr` (self reflection criterion)
+- `acr` ([AutoCodeRover](https://github.com/nus-apr/auto-code-rover))
+
+In addition, different toolkits and data sources can be specified, such as:
+- `retrieval_search` (langchain-based retrieval, bm25 by default)
+- `acr_toolkit` (AST tools from AutoCodeRover)
+
+By default, SWE-Bench_Lite is used as the data source.
+
+For example, to run the experiments with Self-Reflection stopping criterion and AST tools from AutoCodeRover on full SWE-Bench dataset, use the following command:
+```bash
+python code_editing/scripts/run_agent.py -cn agent_sr tools=acr_toolkit data_source=swe_bench data_source.lite=false
+```
+
+More details can be found in the `code_editing/scripts/conf` and `code_editing/configs` directories.
+
+### Evaluation
+To evaluate the results, use the following command:
+
+```bash
+python code_editing/scripts/evaluate.py input_path=/path/to/inference.jsonl
+```
+
+The evaluation script will output the evaluation metrics for the inference results.
+To configure the evaluation, modify the `code_editing/scripts/conf/evaluation.yaml` file.
 
 [//]: # (TODO: Citation)
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

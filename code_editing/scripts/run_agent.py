@@ -19,7 +19,7 @@ from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
 from code_editing.scripts.common import finish_wandb, get_cool_name, inference_loop, init_output_path, init_wandb
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="agents")
+@hydra.main(version_base=None, config_path="conf", config_name="agent")
 def main(cfg: RunAgentConfig):
     # Initialize extractor and data source
     extractor = CheckoutExtractor()

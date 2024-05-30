@@ -1,6 +1,0 @@
-defaults:
-  - agent_common
-  - graph: collect_edit
-  - graph/context_collector: llm_retrieval
-  - graph/editor: simple_editor
-  - tools: acr_toolkit

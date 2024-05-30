@@ -1,8 +1,11 @@
 defaults:
-  - base_baseline
-  - backbone: openai-gpt-3.5-turbo
-  - backbone/prompt: code_fragment
-  - preprocessor: truncate
-  - data_source: swe_bench
-  - extractor: code_fragment
+  - agent_common
+  - graph: collect_edit
+  - graph/context_collector: as_is_retrieval
+  - graph/editor: simple_editor
   - _self_
+
+graph:
+  context_collector:
+    k: null
+    total_context: 500
