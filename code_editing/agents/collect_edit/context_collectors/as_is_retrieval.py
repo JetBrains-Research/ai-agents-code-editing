@@ -2,8 +2,8 @@ from typing import Optional
 
 from langchain_core.runnables import RunnableLambda
 
-from code_editing.agents.graph.collect_edit.collect_edit import CollectEditState
-from code_editing.agents.graph.graph_factory import GraphFactory
+from code_editing.agents.collect_edit.collect_edit import CollectEditState
+from code_editing.agents.graph_factory import GraphFactory
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
 

@@ -14,7 +14,7 @@ class EditorConfig:
 
 @dataclass
 class SimpleEditorConfig(EditorConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.editors.SimpleEditor"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.editors.SimpleEditor"
     edit_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/edit"))
 
 

@@ -1,10 +1,10 @@
 # Original: https://github.com/nus-apr/auto-code-rover/blob/main/app/search/search_manage.py
 from collections import defaultdict, namedtuple
 from collections.abc import MutableMapping
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
-from code_editing.agents.graph.collect_edit.context_collectors.acr_search import search_utils
-from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_utils import SearchResult
+from code_editing.agents.collect_edit.context_collectors.acr_search import search_utils
+from code_editing.agents.collect_edit.context_collectors.acr_search.search_utils import SearchResult
 
 LineRange = namedtuple("LineRange", ["start", "end"])
 

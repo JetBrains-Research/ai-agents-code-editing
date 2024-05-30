@@ -16,13 +16,13 @@ class GraphConfig:
 
 @dataclass
 class AgentOnlyConfig(GraphConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.AgentOnly"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.end_to_end.AgentOnly"
     agent_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/agent"))
 
 
 @dataclass
 class SelfReflectionConfig(GraphConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.SelfReflection"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.end_to_end.SelfReflection"
     agent_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/agent"))
     agent_review_prompt: UserPromptConfig = field(
         default_factory=default_user_prompt("jbr-code-editing/agent-reviewed")
@@ -32,7 +32,7 @@ class SelfReflectionConfig(GraphConfig):
 
 @dataclass
 class CollectEditConfig(GraphConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.CollectEdit"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.CollectEdit"
     context_collector: ContextCollectorsConfig = MISSING
     editor: EditorConfig = MISSING
     only_collect: bool = False

@@ -1,6 +1,6 @@
 from langchain_core.tools import ToolException, tool
 
-from code_editing.agents.graph.graph_factory import GraphFactory
+from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.agents.utils import PromptWrapper
 

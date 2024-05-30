@@ -5,7 +5,7 @@ from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
+from code_editing.agents.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
 from code_editing.agents.utils import PromptWrapper
 
 

@@ -4,8 +4,8 @@ from typing import Dict, List, Union
 from hydra.utils import get_class, instantiate
 from langchain_core.runnables import RunnableConfig
 
-from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_manage import SearchManager
-from code_editing.agents.graph.graph_factory import GraphFactory
+from code_editing.agents.collect_edit.context_collectors.acr_search.search_manage import SearchManager
+from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.backbones.base_backbone import CEInput, CEOutput

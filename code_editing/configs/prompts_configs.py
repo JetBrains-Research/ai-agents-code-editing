@@ -36,7 +36,7 @@ class CodeFragmentPromptConfig(PromptConfig):
 
 @dataclass
 class SimpleAgentPromptConfig(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.prompts.SimpleAgentPrompt"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.SimpleAgentPrompt"
 
 
 cs = ConfigStore.instance()

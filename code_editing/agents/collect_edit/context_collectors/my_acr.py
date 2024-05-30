@@ -1,4 +1,3 @@
-# Original:
 import ast
 import inspect
 import re
@@ -10,9 +9,9 @@ from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_manage import SearchManager
-from code_editing.agents.graph.collect_edit.context_collectors.acr_search.search_utils import to_relative_path
-from code_editing.agents.graph.graph_factory import GraphFactory
+from code_editing.agents.collect_edit.context_collectors.acr_search.search_manage import SearchManager
+from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.tools.common import lines_format_document
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
 You are working on an issue submitted to your project.
@@ -21,13 +20,7 @@ Your task is to invoke a few search API calls to gather buggy information, then 
 """
 prompt = (
     "Based on the files, classes, methods, and code statements from the issue related to the bug, you can use the following search APIs to get more context of the project."
-    "\n- search_class(class_name: str): Search for a class in the codebase"
-    "\n- search_method_in_file(method_name: str, file_path: str): Search for a method in a given file"
-    "\n- search_method_in_class(method_name: str, class_name: str): Search for a method in a given class"
-    "\n- search_method(method_name: str): Search for a method in the entire codebase"
     "\n- search_code(code_str: str): Search for a code snippet in the entire codebase"
-    "\n- search_code_in_file(code_str: str, file_path: str): Search for a code snippet in a given file file"
-    "\n\nNote that you can use multiple search APIs in one round."
     "\n\nNow analyze the issue and select necessary APIs to get more context of the project. Each API call must have concrete arguments as inputs."
 )
 PROXY_PROMPT = """
@@ -38,25 +31,18 @@ The text will consist of two parts:
 Extract API calls from question 1 (leave empty if not exist) and bug locations from question 2 (leave empty if not exist).
 
 The API calls include:
-search_method_in_class(method_name: str, class_name: str)
-search_method_in_file(method_name: str, file_path: str)
-search_method(method_name: str)
-search_class_in_file(self, class_name, file_name: str)
-search_class(class_name: str)
-search_code_in_file(code_str: str, file_path: str)
 search_code(code_str: str)
 
 Provide your answer in JSON structure like this, you should ignore the argument placeholders in api calls.
 For example, search_code(code_str="str") should be search_code("str")
-search_method_in_file("method_name", "path.to.file") should be search_method_in_file("method_name", "path/to/file")
 Make sure each API call is written as a valid python expression.
 
 {
-    "API_calls": ["api_call_1(args)", "api_call_2(args)", ...],
-    "bug_locations":[{"file": "path/to/file", "class": "class_name", "method": "method_name"}, {"file": "path/to/file", "class": "class_name", "method": "method_name"} ... ]
+    "API_calls": ["search_code(args)", "search_code(args)", ...],
+    "bug_locations":[{"file": "path/to/file", "lines": [[1, 1], [3, 10], [45, 100]]}, {"file": "another/path/to/file", "lines": [[7, 10], [20, 30]]} ... ]
 }
 
-NOTE: a bug location should at least has a "class" or "method".
+NOTE: a bug location should consist of a "file" and "lines", where "lines" is a list of line ranges (1-indexed, inclusive), e.g. [[1, 1], [3, 10], [45, 100]] for lines 1, 3-10, 45-100.
 """
 
 
@@ -98,7 +84,7 @@ def is_valid_response(data: Any) -> tuple[bool, str]:
             return False, "Both API_calls and bug_locations are empty"
 
         for loc in bug_locations:
-            if loc.get("class") or loc.get("method"):
+            if loc.get("file") is not None and loc.get("lines") is not None:
                 continue
             return False, "Bug location not detailed enough"
     else:
@@ -145,13 +131,23 @@ def prepare_issue_prompt(problem_stmt: str) -> str:
     return result
 
 
-class ACRRetrieval(GraphFactory):
-    name = "acr_retrieval"
+class RetrievalSearchManager:
+    def __init__(self, retrieval_helper):
+        self.retrieval_helper = retrieval_helper
 
-    def __init__(self, *args, max_tries: int = 5, **kwargs):
-        # super().__init__(*args, **kwargs)
+    def search_code(self, code_str: str, run_manager=None) -> str:
+        docs = self.retrieval_helper.search(code_str, 5, run_manager=run_manager)
+        res = "\n\n".join(lines_format_document(doc, repo_path=self.retrieval_helper.repo_path) for doc in docs)
+        return f"{len(docs)} results found:\n{res}"
+
+
+class MyACRRetrieval(GraphFactory):
+    name = "my_acr_retrieval"
+
+    def __init__(self, *args, max_tries: int = 5, max_iters: int = 15, **kwargs):
         super().__init__()
         self.max_tries = max_tries
+        self.max_iters = max_iters
 
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(PROXY_PROMPT)]
@@ -177,7 +173,7 @@ class ACRRetrieval(GraphFactory):
         if retrieval_helper is None:
             raise ValueError("Retrieval helper is not set")
 
-        search_manager = SearchManager(retrieval_helper.repo_path)
+        search_manager = RetrievalSearchManager(retrieval_helper)
         workflow = StateGraph(dict)
         llm: ChatOpenAI = self._llm
         search_text = prompt
@@ -201,7 +197,8 @@ class ACRRetrieval(GraphFactory):
                 search_text = (
                     "Based on your analysis, answer below questions:\n"
                     "    - do we need more context: construct search API calls to get more context of the project. (leave it empty if you don't need more context)\n"
-                    "    - where are bug locations: buggy files and methods. (leave it empty if you don't have enough information)"
+                    "    - where are bug locations lines: buggy sections in files with line numbers, e.g. 'lines 13-20 and 45 in file utils.py' (leave it empty if you don't have enough information about relevant files or line numbers)\n"
+                    "NOTE: Bug location must include line numbers and file path"
                 )
                 res = llm.invoke(messages)
                 messages.append(res)
@@ -215,28 +212,10 @@ class ACRRetrieval(GraphFactory):
                 state["is_sufficient"] = api_calls == [] and bug_locations != []
                 state["api_calls"] = api_calls
                 state["bug_locations"] = bug_locations
-
-                if bug_locations:
-                    collated_tool_response = ""
-                    # check bug locations
-                    for bug_location in bug_locations:
-                        try:
-                            tool_output, *_ = search_for_bug_location(search_manager, bug_location)
-                        except Exception as e:
-                            tool_output = f"Cound not find bug location: {e}"
-                        collated_tool_response += f"\n\n{tool_output}\n"
-
-                    if "Unknown function" in collated_tool_response or "Could not" in collated_tool_response:
-                        messages.append(
-                            HumanMessage(
-                                "The buggy locations is not precise. You may need to check whether the arguments are correct and search more information."
-                            )
-                        )
-                        state["is_sufficient"] = False
-
                 return state
+            raise ValueError("Failed to get a valid response after max tries.")
 
-        def do_search(state):
+        def do_search(state, run_manager=None):
             nonlocal messages, llm
             api_calls = state["api_calls"]
             if api_calls:
@@ -245,7 +224,7 @@ class ACRRetrieval(GraphFactory):
                     try:
                         func_name, func_args = parse_function_invocation(api_call)
                         function = getattr(search_manager, func_name)
-                        res, summary, _ = function(*func_args)
+                        res = function(*func_args, run_manager=run_manager)
                         tool_output += f"Result of {func_name}({', '.join(func_args)}):\n{res}\n"
                     except Exception as e:
                         tool_output += f"Error in {api_call}: {e}\n"
@@ -262,7 +241,7 @@ class ACRRetrieval(GraphFactory):
         workflow.add_edge("start", "search")
         workflow.add_conditional_edges(
             "search",
-            lambda state: state["is_sufficient"] or iters >= 15,
+            lambda state: state["is_sufficient"] or iters >= self.max_iters,
             {True: END, False: "do_search"},
         )
         workflow.add_edge("do_search", "search")
@@ -270,69 +249,11 @@ class ACRRetrieval(GraphFactory):
 
         def collect_context(state):
             bug_locations = state.get("bug_locations", [])
-            search_manager.is_tracking = True
-            for bug_location in bug_locations:
-                search_for_bug_location(search_manager, bug_location)
-            # compile into dict of lines
-            segments = search_manager.viewed_lines
             ctx = {}
-            for file_name, st, end in segments:
-                fname = to_relative_path(file_name, retrieval_helper.repo_path).replace("\\", "/")
-                ctx.setdefault(fname, set()).update(range(st, end + 1))
+            for bug_location in bug_locations:
+                file_name, lines = bug_location["file"], bug_location["lines"]
+                for st, end in lines:
+                    ctx.setdefault(file_name, set()).update(range(st, end + 1))
             return {"collected_context": ctx}
 
         return workflow.compile() | RunnableLambda(collect_context, name="collect_context")
-
-
-def search_for_bug_location(
-    search_manager: SearchManager,
-    bug_location: dict[str, str],
-) -> tuple[str, str, bool]:
-    found = False
-
-    file_name = bug_location.get("file")
-    method_name = bug_location.get("method")
-    class_name = bug_location.get("class")
-
-    assert method_name or class_name, f"Invalid bug location: {bug_location}"
-
-    call_result = None
-
-    def call_function(func_name: str, kwargs: dict[str, str]) -> None:
-        nonlocal found, call_result, search_manager
-        func = getattr(search_manager, func_name)
-        call_result = func(**kwargs)
-        found = True
-
-    if (not found) and method_name and class_name:
-        kwargs = {
-            "method_name": method_name,
-            "class_name": class_name,
-        }
-        call_function("search_method_in_class", kwargs)
-
-    if (not found) and method_name and file_name:
-        kwargs = {
-            "method_name": method_name,
-            "file_name": file_name,
-        }
-        call_function("search_method_in_file", kwargs)
-
-    if (not found) and class_name and file_name:
-        kwargs = {
-            "class_name": class_name,
-            "file_name": file_name,
-        }
-        call_function("search_class_in_file", kwargs)
-
-    if (not found) and class_name:
-        kwargs = {"class_name": class_name}
-        call_function("get_class_full_snippet", kwargs)
-
-    if (not found) and method_name:
-        kwargs = {"method_name": method_name}
-        call_function("search_method", kwargs)
-
-    assert call_result
-
-    return call_result

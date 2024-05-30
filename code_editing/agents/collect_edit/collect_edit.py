@@ -3,7 +3,7 @@ from typing import Dict, List
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.graph_factory import AgentInput, GraphFactory
+from code_editing.agents.graph_factory import AgentInput, GraphFactory
 
 
 class CollectEditState(AgentInput):

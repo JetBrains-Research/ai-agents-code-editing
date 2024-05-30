@@ -8,7 +8,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 dotenv.load_dotenv()
 
 from code_editing.agents.agent_codeeditor import AgentCodeEditor
-from code_editing.agents.graph.graph_factory import GraphFactory
+from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.utils.chat_prompt import ChatPromptFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory

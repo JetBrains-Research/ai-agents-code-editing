@@ -1,12 +1,11 @@
 from operator import itemgetter
 
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
-from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph.graph_factory import AgentInput, GraphFactory
+from code_editing.agents.graph_factory import AgentInput, GraphFactory
 from code_editing.agents.utils.user_prompt import PromptWrapper
 
 

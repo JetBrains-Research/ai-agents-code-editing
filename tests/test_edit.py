@@ -1,6 +1,6 @@
 import tempfile
 
-from code_editing.agents.graph.collect_edit.editors.util import process_edit
+from code_editing.agents.collect_edit.editors.util import process_edit
 
 
 def test_process_edit():

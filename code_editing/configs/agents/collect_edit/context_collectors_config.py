@@ -15,21 +15,21 @@ class ContextCollectorsConfig:
 
 @dataclass
 class AsIsRetrievalConfig(ContextCollectorsConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.AsIsRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.AsIsRetrieval"
     k: Optional[int] = 5
     total_context: Optional[int] = None
 
 
 @dataclass
 class LLMRetrievalConfig(ContextCollectorsConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.LLMRetrieval"
     search_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/search-reviewed"))
     do_review: bool = True
 
 
 @dataclass
 class LLMCycleRetrievalConfig(LLMRetrievalConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMCycleRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.LLMCycleRetrieval"
     review_prompt: UserPromptConfig = field(
         default_factory=default_user_prompt("jbr-code-editing/search-is-sufficient")
     )
@@ -37,18 +37,18 @@ class LLMCycleRetrievalConfig(LLMRetrievalConfig):
 
 @dataclass
 class LLMFixedCtxRetrievalConfig(LLMRetrievalConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.LLMFixedCtxRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.LLMFixedCtxRetrieval"
     total_context: int = 10000
 
 
 @dataclass
 class ACRRetrievalConfig(ContextCollectorsConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.ACRRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.ACRRetrieval"
 
 
 @dataclass
 class MyACRRetrievalConfig(ContextCollectorsConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.graph.collect_edit.context_collectors.MyACRRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.MyACRRetrieval"
 
 
 cs = ConfigStore.instance()
