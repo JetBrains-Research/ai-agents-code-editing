@@ -12,7 +12,7 @@ from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.scripts.common import finish_wandb, inference_loop, init_output_path, init_wandb
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="baseline")
+@hydra.main(version_base=None, config_path="conf", config_name="backbone_only")
 def main(cfg: RunBaselineConfig):
     # Initialize extractor and data source
     extractor: CodeBaseExtractor = instantiate(cfg.extractor)
