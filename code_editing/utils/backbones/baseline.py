@@ -1,24 +1,9 @@
-from abc import ABC, abstractmethod
-
 import wandb
 from wandb.sdk.data_types.trace_tree import StatusCode
 
-from code_editing.backbones import CEBackbone
-from code_editing.backbones.base_backbone import CEInput, CEOutput
-from code_editing.preprocessors.base_preprocessor import CEPreprocessor
+from code_editing.code_editor import CEBackbone, CEInput, CEOutput, CodeEditor
 from code_editing.utils import wandb_utils
-
-
-class CodeEditor(ABC):
-    run_name = "base"
-
-    @abstractmethod
-    def generate_diff(self, req: CEInput) -> CEOutput:
-        pass
-
-    @property
-    def metadata(self) -> dict:
-        return {"type": "base"}
+from code_editing.utils.preprocessors.base_preprocessor import CEPreprocessor
 
 
 class CEBaseline(CodeEditor):

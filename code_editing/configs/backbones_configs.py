@@ -66,7 +66,7 @@ class HFBackboneConfig(BackboneConfig):
           (details here: https://huggingface.co/docs/transformers/perf_infer_gpu_one#bettertransformer)
     """
 
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.backbones.HuggingFaceBackbone"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.backbones.HuggingFaceBackbone"
     is_encoder_decoder: bool = MISSING
     model_kwargs: HFModelConfig = field(default_factory=HFModelConfig)
     generation: HFGenerationConfig = field(default_factory=HFGenerationConfig)
@@ -77,7 +77,7 @@ class HFBackboneConfig(BackboneConfig):
 
 @dataclass
 class DummyBackboneConfig(BackboneConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.backbones.DummyBackbone"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.backbones.DummyBackbone"
     model_name: str = "gpt-3.5-turbo"  # For token counting, not crucial
     file_sample_p: float = 0.5
     line_sample_p: float = 0.2
@@ -85,7 +85,7 @@ class DummyBackboneConfig(BackboneConfig):
 
 @dataclass
 class OpenAIBackboneConfig(BackboneConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.backbones.OpenAIBackbone"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.backbones.OpenAIBackbone"
 
 
 cs = ConfigStore.instance()

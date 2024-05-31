@@ -1,0 +1,7 @@
+defaults:
+  - agent_common
+  - graph: collect_edit
+  - graph/context_collector: my_acr
+  - graph/editor: simple_editor
+  - tools: retrieval_search
+  - _self_

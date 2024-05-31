@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from code_editing.agents.tools.base_tool import CEBaseTool
 from code_editing.agents.tools.common import my_format_fragment, parse_file, read_file
-from code_editing.backbones import CEBackbone
+from code_editing.code_editor import CEBackbone
 
 
 class EditTool(CEBaseTool):

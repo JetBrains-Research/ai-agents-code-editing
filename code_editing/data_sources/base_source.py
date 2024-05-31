@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
-from typing import Sequence, Sized
+from typing import Sequence
 
-from code_editing.backbones.base_backbone import CEInput
+from code_editing.code_editor import CEInput
 from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.data_sources.git_data import SimpleGitCEData
 

@@ -1,7 +1,7 @@
 import random
 
-from code_editing.backbones.base_backbone import CEBackbone, CEInput, CEOutput
-from code_editing.prompts import CEPrompt
+from code_editing.code_editor import CEBackbone, CEInput, CEOutput
+from code_editing.utils.prompts import CEPrompt
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
 

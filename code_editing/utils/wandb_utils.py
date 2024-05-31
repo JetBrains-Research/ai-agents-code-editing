@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 import wandb
 from wandb.sdk.data_types.trace_tree import StatusCode, Trace
 
-from code_editing.backbones.base_backbone import CEInput
+from code_editing.code_editor import CEInput
 
 
 def get_current_ms() -> int:

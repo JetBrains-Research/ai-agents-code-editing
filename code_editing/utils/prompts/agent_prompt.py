@@ -3,9 +3,9 @@ from typing import List
 
 from langchain_core.tools import ToolException
 
-from code_editing.backbones.base_backbone import CEInput, CEOutput
-from code_editing.prompts.base_prompt import ChatMessage
-from code_editing.prompts.ce_prompts import SimpleCEPrompt
+from code_editing.code_editor import CEInput, CEOutput
+from code_editing.utils.prompts.base_prompt import ChatMessage
+from code_editing.utils.prompts.ce_prompts import SimpleCEPrompt
 
 
 class SimpleAgentPrompt(SimpleCEPrompt):

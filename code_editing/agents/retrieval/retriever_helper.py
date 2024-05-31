@@ -8,8 +8,8 @@ from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate, format_document
 
+from code_editing.agents.retrieval.file_extensions import extensions, filter_docs
 from code_editing.agents.tools.common import parse_file, read_file
-from code_editing.agents.vectorstore.file_extensions import extensions, filter_docs
 from code_editing.utils.git_utils import get_head_sha_unsafe
 
 

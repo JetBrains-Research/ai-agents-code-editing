@@ -16,27 +16,27 @@ class PromptConfig:
 
 @dataclass
 class ZeroShotPromptConfig(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.ZeroShotCEPrompt"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.ZeroShotCEPrompt"
 
 
 @dataclass
 class FewShotPromptConfig(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.FewShotCEPrompt"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.FewShotCEPrompt"
 
 
 @dataclass
 class FewShotPrompt2Config(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.FewShotCEPrompt2"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.FewShotCEPrompt2"
 
 
 @dataclass
 class CodeFragmentPromptConfig(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.CodeFragmentCEPrompt"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.CodeFragmentCEPrompt"
 
 
 @dataclass
 class SimpleAgentPromptConfig(PromptConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.prompts.SimpleAgentPrompt"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.SimpleAgentPrompt"
 
 
 cs = ConfigStore.instance()

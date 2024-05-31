@@ -1,5 +1,5 @@
-from code_editing.backbones.base_backbone import CEInput
-from code_editing.preprocessors.base_preprocessor import CEPreprocessor
+from code_editing.code_editor import CEInput
+from code_editing.utils.preprocessors.base_preprocessor import CEPreprocessor
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
 

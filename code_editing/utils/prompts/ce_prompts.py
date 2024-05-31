@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from typing import List
 
-from code_editing.backbones.base_backbone import CEInput
-from code_editing.prompts import prompt_utils
-from code_editing.prompts.base_prompt import CEPrompt, ChatMessage
+from code_editing.code_editor import CEInput
+from code_editing.utils.prompts import prompt_utils
+from code_editing.utils.prompts.base_prompt import CEPrompt, ChatMessage
 
 
 class SimpleCEPrompt(CEPrompt):

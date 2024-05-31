@@ -45,6 +45,7 @@ Available configuration names are:
 - `agent_cl` (context length criterion)
 - `agent_sr` (self reflection criterion)
 - `acr` ([AutoCodeRover](https://github.com/nus-apr/auto-code-rover))
+- `my_acr` (AutoCodeRover with langchain-based retrieval)
 
 In addition, different toolkits and data sources can be specified, such as:
 - `retrieval_search` (langchain-based retrieval, bm25 by default)

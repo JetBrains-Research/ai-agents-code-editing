@@ -3,7 +3,7 @@ from typing import List
 from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
 
-from code_editing.agents.vectorstore.retriever_helper import RetrievalHelper
+from code_editing.agents.retrieval.retriever_helper import RetrievalHelper
 
 
 class BM25Retrieval(RetrievalHelper):

@@ -42,3 +42,15 @@ class CEBackbone(ABC):
         @return: The output of the code editing model.
         """
         pass
+
+
+class CodeEditor(ABC):
+    run_name = "base"
+
+    @abstractmethod
+    def generate_diff(self, req: CEInput) -> CEOutput:
+        pass
+
+    @property
+    def metadata(self) -> dict:
+        return {"type": "base"}

@@ -10,7 +10,7 @@ import wandb
 from hydra.core.hydra_config import HydraConfig
 from tqdm import tqdm
 
-from code_editing.baseline.baseline import CodeEditor
+from code_editing.code_editor import CodeEditor
 from code_editing.configs.inference_config import InferenceConfig
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
@@ -60,31 +60,34 @@ def inference_loop(
             task_index = {task: i for (task, i) in queue}
             queue = []
             logger.info(
-                f"Waiting for {len(task_index)} tasks to complete using {inference_config.num_workers} workers..."
+                f"Waiting for {end - start - num_added} tasks to complete using {inference_config.num_workers} workers..."
             )
             for task in as_completed(task_index):
                 i = task_index[task]
                 # Get the result
                 y_pred = None
                 res = {}
+                data = datapoints.get(i, None)
                 try:
+                    if data is None:
+                        raise ValueError(f"Data for #{i} is None")
+                    row_info = f"{data.repo}@{data.base_hash[:8]}"
                     res = task.result()
                     y_pred = res["prediction"] + "\n"
                     if y_pred.strip() == "":
                         raise ValueError("Empty prediction")
                 except Exception as e:
                     if "Empty prediction" in str(e):
-                        logger.warning(f"Empty prediction for #{i}")
+                        logger.warning(f"Empty prediction for #{i} {row_info}")
                     else:
-                        logger.warning(f"Error in inference for #{i}", exc_info=e)
+                        logger.warning(f"Error in inference for ${i} {row_info}", exc_info=e)
                     tries[i] += 1
                     if tries[i] < inference_config.num_tries:
                         queue.append((executor.submit(process_datapoint, i), i))
                         continue
                     else:
-                        logger.error(f"Failed to predict for #{i}")
+                        logger.error(f"Failed to predict for #{i} {row_info} after {inference_config.num_tries} tries")
 
-                data = datapoints[i]
                 # Store the results
                 viewed_lines = res.get("viewed_lines", {})
                 viewed_lines = json.dumps({k: list(v) for k, v in viewed_lines.items() if v})
@@ -92,7 +95,7 @@ def inference_loop(
                 # Update the progress bar
                 num_added += 1
                 progress_bar.update(1)
-                progress_bar.set_postfix_str(f"latest: {i} {data.repo}@{data.base_hash[:8]}")
+                progress_bar.set_postfix_str(f"latest: {i} {row_info}")
 
                 # Save the checkpoint
                 if (

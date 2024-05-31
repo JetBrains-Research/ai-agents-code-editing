@@ -4,9 +4,9 @@ from typing import Optional
 from openai import OpenAI
 from wandb.sdk.data_types.trace_tree import Trace
 
-from code_editing.backbones.base_backbone import CEBackbone, CEInput, CEOutput
-from code_editing.prompts.base_prompt import CEPrompt
+from code_editing.code_editor import CEBackbone, CEInput, CEOutput
 from code_editing.utils import wandb_utils
+from code_editing.utils.prompts.base_prompt import CEPrompt
 
 
 class OpenAIBackbone(CEBackbone):

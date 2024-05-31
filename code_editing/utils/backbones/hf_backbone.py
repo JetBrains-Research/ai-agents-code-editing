@@ -5,11 +5,10 @@ import torch
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, GenerationConfig, set_seed
 from wandb.sdk.data_types.trace_tree import Trace
 
+from code_editing.code_editor import CEBackbone, CEInput, CEOutput
 from code_editing.configs.backbones_configs import HFGenerationConfig, HFModelConfig
-from code_editing.prompts.base_prompt import CEPrompt
-
-from ..utils import wandb_utils
-from .base_backbone import CEBackbone, CEInput, CEOutput
+from code_editing.utils import wandb_utils
+from code_editing.utils.prompts.base_prompt import CEPrompt
 
 
 class HuggingFaceBackbone(CEBackbone):

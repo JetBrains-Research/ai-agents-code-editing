@@ -12,7 +12,7 @@ from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.utils.chat_prompt import ChatPromptFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
-from code_editing.backbones import CEBackbone
+from code_editing.code_editor import CEBackbone
 from code_editing.configs.agents.agent_config import RunAgentConfig
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource

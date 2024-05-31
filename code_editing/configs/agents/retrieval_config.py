@@ -16,13 +16,13 @@ class RetrievalConfig:
 
 @dataclass
 class FaissRetrievalConfig(RetrievalConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.vectorstore.FaissRetrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.retrieval.FaissRetrieval"
     embeddings: EmbeddingsConfig = MISSING
 
 
 @dataclass
 class BM25RetrievalConfig(RetrievalConfig):
-    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.vectorstore.BM25Retrieval"
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.retrieval.BM25Retrieval"
 
 
 cs = ConfigStore.instance()

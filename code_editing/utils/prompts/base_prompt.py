@@ -5,7 +5,7 @@ from typing import List, Optional, TypedDict
 from jinja2.exceptions import TemplateError
 from transformers import PreTrainedTokenizerFast
 
-from code_editing.backbones.base_backbone import CEInput, CEOutput
+from code_editing.code_editor import CEInput, CEOutput
 
 
 class ChatMessage(TypedDict):

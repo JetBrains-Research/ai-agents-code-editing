@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from code_editing.backbones.base_backbone import CEInput
+from code_editing.code_editor import CEInput
 
 
 class CEPreprocessor(ABC):
