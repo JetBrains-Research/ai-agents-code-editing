@@ -92,7 +92,7 @@ def apply_patch_like_commit(
 ) -> Optional[Dict[str, str]]:
     """Apply a patch to the parent of a git commit. Returns contents of [files] after applying the patch."""
     repo_path = get_repo_path(data_dir, repo)
-    repo, lock_file = _get_repo(repo_path)
+    repo = _get_repo(repo_path)
 
     _prep_repo(repo)
     _checkout_commit(repo, base_commit_sha)
@@ -212,6 +212,7 @@ def apply_patch_unsafe(repo, patch: str):
             #  --recount: Fix line numbers in the patch
             repo.git.execute(["git", "apply", "--unidiff-zero", "--recount", "--ignore-whitespace", file_name])
     except Exception as e:
+        print(e)
         os.remove(file_name)
         raise e
     os.remove(file_name)
