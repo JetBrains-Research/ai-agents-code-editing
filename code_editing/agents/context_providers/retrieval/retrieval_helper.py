@@ -17,13 +17,7 @@ from code_editing.utils.git_utils import get_head_sha_unsafe
 
 
 class RetrievalHelper(ContextProvider):
-    def __init__(
-        self,
-        repo_path: str,
-        data_path: str,
-        splitter: TextSplitter,
-        loader: LoaderConfig
-    ):
+    def __init__(self, repo_path: str, data_path: str, splitter: TextSplitter, loader: LoaderConfig):
         """
         RetrievalHelper
 

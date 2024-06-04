@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, TypedDict
 
 from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.language_models import BaseLLM, BaseChatModel
+from langchain_core.language_models import BaseChatModel, BaseLLM
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from typing_extensions import Self
