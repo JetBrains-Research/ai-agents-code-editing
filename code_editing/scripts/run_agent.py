@@ -3,6 +3,7 @@ import hydra
 import omegaconf
 from hydra.utils import instantiate
 from langchain_core.language_models import BaseLanguageModel
+from langchain_core.runnables import RunnableConfig
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 dotenv.load_dotenv()
@@ -30,6 +31,10 @@ def main(cfg: RunAgentConfig):
 
     # Instantiate agent params
     tool_factory = ToolFactory(cfg.tools)
+    tool_factory.global_tools_config = {
+        "handle_tool_error": True,
+        "backbone": instantiate(cfg.backbone),
+    }
     prompt_factory: ChatPromptFactory = instantiate(cfg.chat_prompt)
     llm: BaseLanguageModel = instantiate(cfg.llm)
     backbone: CEBackbone = instantiate(cfg.backbone)
@@ -59,15 +64,8 @@ def main(cfg: RunAgentConfig):
         graph_factory=graph_factory,
         tool_factory=tool_factory,
         data_path=data_path,
-        retrieval_cfg=cfg.retrieval,
-        loader_cfg=cfg.loader,
-        tools_cfg={
-            "handle_tool_error": True,
-            "backbone": backbone,
-        },
-        tags=tags,
-        metadata=metadata,
-        run_name=run_name,
+        context_providers_cfg=cfg.context,
+        runnable_config=RunnableConfig(run_name=run_name, tags=tags, metadata=metadata, recursion_limit=1024),
     )
 
     # Name for this run

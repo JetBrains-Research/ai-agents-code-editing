@@ -10,7 +10,7 @@ from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from sqlalchemy import create_engine
 
-from code_editing.agents.retrieval.retriever_helper import RetrievalHelper
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.utils.wandb_utils import get_current_ms
 
 

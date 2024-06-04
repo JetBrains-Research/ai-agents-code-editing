@@ -1,0 +1,9 @@
+defaults:
+  - bm25
+  - _self_
+
+splitter:
+  _target_: "langchain.text_splitter.RecursiveCharacterTextSplitter"
+  chunk_size: 512
+  chunk_overlap: 128
+  add_start_index: true

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -12,17 +13,17 @@ class ToolConfig:
 
 
 @dataclass
-class EditToolConfig:
+class EditToolConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.EditTool"
 
 
 @dataclass
-class ViewFileToolConfig:
+class ViewFileToolConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ViewFileTool"
 
 
 @dataclass
-class CodeSearchToolConfig:
+class CodeSearchToolConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.CodeSearchTool"
     show_outputs: bool = True
     calls_limit: Optional[int] = None
@@ -31,30 +32,45 @@ class CodeSearchToolConfig:
 
 # ACR boilerplate
 @dataclass
-class ACRSearchClassConfig:
+class ACRSearchClassConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchClass"
 
 
 @dataclass
-class ACRSearchMethodInFileConfig:
+class ACRSearchMethodInFileConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethodInFile"
 
 
 @dataclass
-class ACRSearchMethodInClassConfig:
+class ACRSearchMethodInClassConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethodInClass"
 
 
 @dataclass
-class ACRSearchMethodConfig:
+class ACRSearchMethodConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchMethod"
 
 
 @dataclass
-class ACRSearchCodeConfig:
+class ACRSearchCodeConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCode"
 
 
 @dataclass
-class ACRSearchCodeInFileConfig:
+class ACRSearchCodeInFileConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCodeInFile"
+
+
+# All tool options
+cs = ConfigStore.instance()
+cs.store(name="edit", group="tools", node=EditToolConfig)
+cs.store(name="view_file", group="tools", node=ViewFileToolConfig)
+cs.store(name="code_search", group="tools", node=CodeSearchToolConfig)
+
+# All ACR tool options
+cs.store(name="acr_search_class", group="tools", node=ACRSearchClassConfig)
+cs.store(name="acr_search_method_in_file", group="tools", node=ACRSearchMethodInFileConfig)
+cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodInClassConfig)
+cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
+cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
+cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)

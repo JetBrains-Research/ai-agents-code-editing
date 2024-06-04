@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, TypedDict
 
 from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.language_models import BaseLLM
+from langchain_core.language_models import BaseLLM, BaseChatModel
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from typing_extensions import Self
@@ -29,7 +29,7 @@ class GraphFactory(ABC):
         self._tools = []
         self._chat_prompt = None
         self._agent_executor_cfg = {}
-        self._llm: Optional[BaseLLM] = None
+        self._llm: Optional[BaseChatModel] = None
 
     @abstractmethod
     def build(self, *args, **kwargs) -> Runnable[AgentInput, Any]:

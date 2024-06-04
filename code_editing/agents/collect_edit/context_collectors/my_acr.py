@@ -1,15 +1,17 @@
 import ast
 import inspect
+import logging
 import re
 from typing import Any, List, Optional
 
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.collect_edit.context_collectors.acr_search.search_manage import SearchManager
+from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
 from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.tools.common import lines_format_document
 
@@ -152,7 +154,7 @@ class MyACRRetrieval(GraphFactory):
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(PROXY_PROMPT)]
         messages.append(HumanMessage(text))
-        llm: ChatOpenAI = self._llm
+        llm: BaseChatModel = self._llm
         parser = JsonOutputParser()
 
         for i in range(self.max_tries):
@@ -166,7 +168,7 @@ class MyACRRetrieval(GraphFactory):
                 messages.append(HumanMessage(f"{diagnosis}. Please provide a valid response."))
                 continue
 
-        print("Failed to get a valid response after max tries.")
+        logging.warning("Failed to get a valid response after max tries.")
         return None
 
     def build(self, *args, retrieval_helper=None, **kwargs):
@@ -175,7 +177,7 @@ class MyACRRetrieval(GraphFactory):
 
         search_manager = RetrievalSearchManager(retrieval_helper)
         workflow = StateGraph(dict)
-        llm: ChatOpenAI = self._llm
+        llm: BaseChatModel = self._llm
         search_text = prompt
 
         iters = 0

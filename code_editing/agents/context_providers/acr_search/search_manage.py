@@ -3,8 +3,8 @@ from collections import defaultdict, namedtuple
 from collections.abc import MutableMapping
 from typing import List, Tuple
 
-from code_editing.agents.collect_edit.context_collectors.acr_search import search_utils
-from code_editing.agents.collect_edit.context_collectors.acr_search.search_utils import SearchResult
+from code_editing.agents.context_providers.acr_search import search_utils
+from code_editing.agents.context_providers.acr_search.search_utils import SearchResult
 
 LineRange = namedtuple("LineRange", ["start", "end"])
 
@@ -16,8 +16,8 @@ RESULT_SHOW_LIMIT = 3
 
 
 class SearchManager:
-    def __init__(self, project_path: str):
-        self.project_path = project_path
+    def __init__(self, repo_path: str, show_lineno: bool = False, **kwargs):
+        self.project_path = repo_path
         # list of all files ending with .py, which are likely not test files
         # These are all ABSOLUTE paths.
         self.parsed_files: list[str] = []
@@ -35,8 +35,9 @@ class SearchManager:
         self.function_index: FuncIndexType = {}
         self._build_index()
         self.viewed_lines: List[Tuple[str, int, int]] = []
+
         self.is_tracking = False
-        self.show_lineno = False
+        self.show_lineno = show_lineno
 
     def _build_index(self):
         """

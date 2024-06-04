@@ -8,11 +8,12 @@ class ToolFactory:
     def __init__(self, tool_config_dict: dict):
         self.tool_config_list = tool_config_dict.values()
         self.preview = self._preview()
+        self.global_tools_config = {}
 
     def build(self, *args, **kwargs) -> List[BaseTool]:
         res = []
         for tool_config in self.tool_config_list:
-            tool = instantiate(tool_config, *args, **kwargs)
+            tool = instantiate(tool_config, *args, **self.global_tools_config, **kwargs)
             res.append(tool)
         return res
 

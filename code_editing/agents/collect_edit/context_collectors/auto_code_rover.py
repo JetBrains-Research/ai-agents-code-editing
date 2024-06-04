@@ -1,17 +1,18 @@
 # Original:
 import ast
 import inspect
+import logging
 import re
 from typing import Any, List, Optional
 
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableLambda
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.collect_edit.context_collectors.acr_search.search_manage import SearchManager
-from code_editing.agents.collect_edit.context_collectors.acr_search.search_utils import to_relative_path
+from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
+from code_editing.agents.context_providers.acr_search.search_utils import to_relative_path
 from code_editing.agents.graph_factory import GraphFactory
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
@@ -156,7 +157,7 @@ class ACRRetrieval(GraphFactory):
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(PROXY_PROMPT)]
         messages.append(HumanMessage(text))
-        llm: ChatOpenAI = self._llm
+        llm: BaseChatModel = self._llm
         parser = JsonOutputParser()
 
         for i in range(self.max_tries):
@@ -170,16 +171,17 @@ class ACRRetrieval(GraphFactory):
                 messages.append(HumanMessage(f"{diagnosis}. Please provide a valid response."))
                 continue
 
-        print("Failed to get a valid response after max tries.")
+        logging.warning("Failed to get a valid response after max tries.")
         return None
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
+    def build(self, *args, retrieval_helper=None, search_manager=None, **kwargs):
         if retrieval_helper is None:
             raise ValueError("Retrieval helper is not set")
+        if search_manager is None:
+            raise ValueError("Search manager is not set")
 
-        search_manager = SearchManager(retrieval_helper.repo_path)
         workflow = StateGraph(dict)
-        llm: ChatOpenAI = self._llm
+        llm: BaseChatModel = self._llm
         search_text = prompt
 
         iters = 0

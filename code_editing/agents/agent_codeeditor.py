@@ -1,17 +1,15 @@
 import logging
-from typing import Dict, List, Union
+from typing import Dict
 
-from hydra.utils import get_class, instantiate
+from hydra.utils import instantiate
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 
-from code_editing.agents.collect_edit.context_collectors.acr_search.search_manage import SearchManager
 from code_editing.agents.graph_factory import GraphFactory
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEInput, CEOutput, CodeEditor
-from code_editing.configs.agents.loader_config import LoaderConfig
-from code_editing.configs.agents.retrieval_config import RetrievalConfig
-from code_editing.utils.git_utils import get_head_diff_unsafe, reset_to_head
+from code_editing.configs.agents.context_providers.context_config import ContextConfig
+from code_editing.utils.git_utils import get_head_diff_unsafe
 from code_editing.utils.wandb_utils import log_codeeditor_trace
 
 
@@ -21,42 +19,20 @@ class AgentCodeEditor(CodeEditor):
         graph_factory: GraphFactory,
         tool_factory: ToolFactory,
         data_path: str,
-        retrieval_cfg: Union[RetrievalConfig, Dict] = None,
-        loader_cfg: Union[LoaderConfig, Dict] = None,
-        tools_cfg: Dict = None,
-        tags: List[str] = None,
-        metadata: Dict = None,
-        run_name: str = None,
+        context_providers_cfg: Dict[str, ContextConfig] = None,
+        runnable_config: RunnableConfig = None,
     ):
-        if retrieval_cfg is None:
-            retrieval_cfg = {}
-        if loader_cfg is None:
-            loader_cfg = {}
-        if tools_cfg is None:
-            tools_cfg = {}
-        if tags is None:
-            tags = []
-        if metadata is None:
-            metadata = {}
-        if run_name is None:
-            run_name = "Agent"
+        if context_providers_cfg is None:
+            context_providers_cfg = {}
 
         # Agent graph
         self.graph_factory = graph_factory
         # Tools and Data
         self.tool_factory = tool_factory
-        self.tools_cfg = tools_cfg
         self.data_path = data_path
-        # Retrieval
-        self.retrieval_cfg = retrieval_cfg
-        # Document loader
-        self.loader_cls = get_class(loader_cfg["_target_"])
-        self.loader_kwargs = dict(loader_cfg)
-        self.loader_kwargs.pop("_target_")
-        # Metadata for tracing
-        self.tags = tags
-        self._metadata = metadata
-        self.run_name = run_name
+
+        self.context_providers_cfg = context_providers_cfg
+        self.runnable_config = runnable_config
 
     @log_codeeditor_trace()
     def generate_diff(self, req: CEInput, root_span) -> CEOutput:
@@ -65,31 +41,20 @@ class AgentCodeEditor(CodeEditor):
         if repo_path is None:
             raise ValueError("repo_path is required")
 
-        # Retrieval helper (for bm25 search and viewed lines tracking)
-        retrieval_helper = instantiate(
-            self.retrieval_cfg,
-            repo_path=repo_path,
-            loader_cls=self.loader_cls,
-            loader_kwargs=self.loader_kwargs,
-            data_path=self.data_path,
-        )
+        generation_kwargs = {"repo_path": repo_path, "data_path": self.data_path}
 
-        # AST search manager
-        search_manager = SearchManager(project_path=repo_path)
-        search_manager.show_lineno = True
+        # Context providers that help the agent to search for the code
+        context_providers = {k: instantiate(v, **generation_kwargs) for k, v in self.context_providers_cfg.items()}
 
         # Tools available to the agent
         tools = self.tool_factory.build(
-            data_path=self.data_path,
-            repo_path=repo_path,
-            retrieval_helper=retrieval_helper,
-            search_manager=search_manager,
+            **generation_kwargs,
+            **context_providers,
             root_span=root_span,  # W&B root span
-            **self.tools_cfg,
         )
 
         # Build the graph runnable
-        app = self.graph_factory.tools(tools).build(retrieval_helper=retrieval_helper)
+        app = self.graph_factory.tools(tools).build(**context_providers)
 
         # Diff collection
         def to_ceoutput(state):
@@ -98,18 +63,13 @@ class AgentCodeEditor(CodeEditor):
             viewed_lines = state.get("collected_context", None)
             if viewed_lines is None:
                 logging.warning("No viewed lines found in the graph output")
-                viewed_lines = retrieval_helper.viewed_lines
+                viewed_lines = {}
             return {"prediction": diff, "viewed_lines": viewed_lines}
 
         # Invoke the graph
         return (app | RunnableLambda(to_ceoutput, name="Collect Diff")).invoke(
             input={"instruction": req["instruction"]},
-            config=RunnableConfig(
-                tags=self.tags,
-                metadata=self._metadata,
-                run_name=self.run_name,
-                recursion_limit=1024,
-            ),
+            config=self.runnable_config,
         )
 
     @property

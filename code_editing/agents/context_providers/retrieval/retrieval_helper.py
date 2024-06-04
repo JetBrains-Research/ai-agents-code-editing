@@ -1,26 +1,28 @@
 import logging
 import os.path
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import List
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
-from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from hydra.utils import get_class
+from langchain.text_splitter import TextSplitter
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate, format_document
 
-from code_editing.agents.retrieval.file_extensions import extensions, filter_docs
+from code_editing.agents.context_providers.context_provider import ContextProvider
+from code_editing.agents.context_providers.retrieval.file_extensions import extensions, filter_docs
 from code_editing.agents.tools.common import parse_file, read_file
+from code_editing.configs.agents.context_providers.loader_config import LoaderConfig
 from code_editing.utils.git_utils import get_head_sha_unsafe
 
 
-class RetrievalHelper(ABC):
+class RetrievalHelper(ContextProvider):
     def __init__(
         self,
         repo_path: str,
         data_path: str,
-        splitter: TextSplitter = RecursiveCharacterTextSplitter(chunk_size=256, chunk_overlap=32, add_start_index=True),
-        loader_cls=TextLoader,
-        loader_kwargs=None,
+        splitter: TextSplitter,
+        loader: LoaderConfig
     ):
         """
         RetrievalHelper
@@ -37,8 +39,11 @@ class RetrievalHelper(ABC):
 
         # Set log level for the directory loader
         logging.getLogger("langchain_community.document_loaders.directory").setLevel(logging.ERROR)
-        if loader_kwargs is None:
-            loader_kwargs = {"autodetect_encoding": True}
+        loader_cls = get_class(loader["target"])
+        loader_kwargs = dict(loader)
+        loader_kwargs.pop("target")
+        if "autodetect_encoding" not in loader_kwargs:
+            loader_kwargs["autodetect_encoding"] = True
         self.loader_kwargs = loader_kwargs
         self.loader_cls = loader_cls
 

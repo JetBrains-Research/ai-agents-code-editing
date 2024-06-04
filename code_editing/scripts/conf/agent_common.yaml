@@ -4,11 +4,4 @@ defaults:
   - llm: gpt-3.5-turbo-16k
   - backbone: openai-gpt-3.5-turbo
   - backbone/prompt: simple_agent
-  - retrieval: bm25
-
-retrieval:
-  splitter:
-    _target_: "langchain.text_splitter.RecursiveCharacterTextSplitter"
-    chunk_size: 512
-    chunk_overlap: 128
-    add_start_index: true
+  - context: all

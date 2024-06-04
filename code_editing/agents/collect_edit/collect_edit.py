@@ -19,7 +19,7 @@ class CollectEdit(GraphFactory):
         self.editor = editor
         self.only_collect = only_collect
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
+    def build(self, *args, **kwargs):
         self.context_collector.copy_from(self, copy_tools=True)
         self.editor.copy_from(self, copy_tools=True)
 
@@ -33,12 +33,12 @@ class CollectEdit(GraphFactory):
                     raise ValueError(f"Lines in {key} are 0-indexed. Please check the workflow.")
             return state
 
-        workflow.add_node("collect", self.context_collector.build(retrieval_helper=retrieval_helper))
+        workflow.add_node("collect", self.context_collector.build(*args, **kwargs))
         workflow.add_node("validate", RunnableLambda(validate_intermediate, name="validate"))
         workflow.add_edge("collect", "validate")
 
         if not self.only_collect:
-            workflow.add_node("edit", self.editor.build(retrieval_helper=retrieval_helper))
+            workflow.add_node("edit", self.editor.build(*args, **kwargs))
             workflow.add_edge("edit", END)
         workflow.add_edge("validate", "edit" if not self.only_collect else END)
 
