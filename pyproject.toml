@@ -66,6 +66,9 @@ scikit-learn = "^1.5.0"
 scipy = "^1.13.1"
 
 
+[tool.poetry.group.code-engine.dependencies]
+code-engine-client = {git = "https://github.com/waleko/code-engine-client.git"}
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

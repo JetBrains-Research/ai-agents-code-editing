@@ -25,7 +25,7 @@ class LLMRetrieval(GraphFactory):
 
     def get_llm_retrieval_tools(self, retrieval_helper):
         # Find the code search tool
-        search_tools = [t for t in self._tools if "search" in t.name]
+        search_tools = self._tools
 
         @tool
         def add_to_context(file_name: str, start_line: int, end_line: int):

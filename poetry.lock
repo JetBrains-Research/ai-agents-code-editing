@@ -664,6 +664,27 @@ tqdm = ">=4.31.1"
 transformers = ">=3.0.0"
 
 [[package]]
+name = "code-engine-client"
+version = "1.0.0"
+description = "agent_service"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "git"
+url = "https://github.com/waleko/code-engine-client.git"
+reference = "HEAD"
+resolved_reference = "31e80175e7f0663ebdfb09bcf65c8d7480cfa340"
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -6441,4 +6462,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "51f5e41a9a0f5ba86ceee0969bfa8a187650a58473ee3a4d614d732ee58eefde"
+content-hash = "bd15fc5e5110206484df1881d314e5cbf0b97038bac1996b90fef427f597f1ef"

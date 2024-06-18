@@ -1,0 +1,3 @@
+defaults:
+  - /tools@ce_ast_get_file_function_names: ce_ast_get_file_function_names
+  - /tools@ce_ast_get_file_function_code: ce_ast_get_file_function_code

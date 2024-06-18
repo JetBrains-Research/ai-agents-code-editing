@@ -61,6 +61,16 @@ class ACRSearchCodeInFileConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCodeInFile"
 
 
+@dataclass
+class ASTGetFileFunctionNamesConfig(ToolConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.context_providers.code_engine.ASTGetFileFunctionNames"
+
+
+@dataclass
+class ASTGetFileFunctionCodeConfig(ToolConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.context_providers.code_engine.ASTGetFileFunctionCode"
+
+
 # All tool options
 cs = ConfigStore.instance()
 cs.store(name="edit", group="tools", node=EditToolConfig)
@@ -74,3 +84,7 @@ cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodI
 cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
 cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
 cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)
+
+# All Code Engine tool options
+cs.store(name="ce_ast_get_file_function_names", group="tools", node=ASTGetFileFunctionNamesConfig)
+cs.store(name="ce_ast_get_file_function_code", group="tools", node=ASTGetFileFunctionCodeConfig)
