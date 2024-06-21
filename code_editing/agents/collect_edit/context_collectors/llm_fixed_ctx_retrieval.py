@@ -2,6 +2,7 @@ from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
 from code_editing.agents.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
@@ -15,9 +16,8 @@ class LLMFixedCtxRetrieval(LLMRetrieval):
         self.max_searches = max_searches
         self.tok_utils = TokenizationUtils("gpt-3.5-turbo-16k")
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
 
         agent_executor = self._agent_executor(
             tools=self.get_llm_retrieval_tools(retrieval_helper),

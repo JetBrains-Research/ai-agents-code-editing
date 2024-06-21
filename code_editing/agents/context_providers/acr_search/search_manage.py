@@ -1,7 +1,10 @@
 # Original: https://github.com/nus-apr/auto-code-rover/blob/main/app/search/search_manage.py
+import os.path
 from collections import defaultdict, namedtuple
 from collections.abc import MutableMapping
 from typing import List, Tuple
+
+import jedi
 
 from code_editing.agents.context_providers.acr_search import search_utils
 from code_editing.agents.context_providers.acr_search.search_utils import SearchResult
@@ -38,6 +41,8 @@ class SearchManager:
 
         self.is_tracking = False
         self.show_lineno = show_lineno
+
+        self.jedi_project = jedi.Project(self.project_path)
 
     def _build_index(self):
         """
@@ -454,7 +459,56 @@ class SearchManager:
                 tool_output += f"- Search result {idx + 1}:\n```\n{res_str}\n```\n"
         return tool_output, summary, True
 
+    def show_definition(self, symbol: str, line_number: int, file_path: str) -> tuple[str, str, bool]:
+        """
+        Show the definition of the symbol at the given line number in the file.
+        """
+        line_number = int(line_number)
+        full_file_path = os.path.join(self.project_path, file_path)
+        # check whether this line is inside a class or function
+        line = search_utils.get_code_snippets(full_file_path, line_number, line_number, show_lineno=False)
+        if symbol not in line:
+            tool_output = f"The symbol `{symbol}` does not appear in line {line_number} of file {file_path}: {line}."
+            summary = tool_output
+            return tool_output, summary, False
+
+        col_offset = line.index(symbol)
+        jedi_script = jedi.Script(path=full_file_path, project=self.jedi_project)
+        definitions = jedi_script.infer(line_number, col_offset)
+        if not definitions:
+            tool_output = f"Could not find definition of symbol `{symbol}` in line {line_number} of file {file_path}."
+            summary = tool_output
+            return tool_output, summary, False
+        # get the first definition
+        definition = definitions[0]
+        full_path, start_no, end_no = (
+            definition.module_path,
+            definition.get_definition_start_position(),
+            definition.get_definition_end_position(),
+        )
+        if not is_subfolder(self.project_path, full_path):
+            tool_output = f"Type of symbol `{symbol}` is {definition.full_name}"
+            summary = tool_output
+            return tool_output, summary, True
+        rel_path = search_utils.to_relative_path(full_path, self.project_path)
+        code = self.retrieve_code_snippet(full_path, start_no[0], end_no[0])
+
+        tool_output = f"Found definition of symbol `{symbol}` in line {line_number} of file {file_path}:\n\n"
+        tool_output += f"File: {rel_path}\n"
+        tool_output += f"Code snippet:\n```\n{code}\n```"
+        summary = tool_output
+        return tool_output, summary, True
+
     def retrieve_code_snippet(self, file_path: str, start_line: int, end_line: int) -> str:
         if self.is_tracking:
             self.viewed_lines.append((file_path, start_line, end_line))
         return search_utils.get_code_snippets(file_path, start_line, end_line, show_lineno=self.show_lineno)
+
+
+def is_subfolder(folder, potential_subfolder):
+    # Get absolute paths
+    folder = os.path.abspath(folder)
+    potential_subfolder = os.path.abspath(potential_subfolder)
+
+    # Check if potential_subfolder starts with folder
+    return os.path.commonpath([folder]) == os.path.commonpath([folder, potential_subfolder])

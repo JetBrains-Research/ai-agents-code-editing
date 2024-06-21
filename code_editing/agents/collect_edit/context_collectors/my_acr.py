@@ -13,6 +13,7 @@ from langgraph.graph import END, StateGraph
 
 from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import lines_format_document
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
@@ -171,9 +172,8 @@ class MyACRRetrieval(GraphFactory):
         logging.warning("Failed to get a valid response after max tries.")
         return None
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
 
         search_manager = RetrievalSearchManager(retrieval_helper)
         workflow = StateGraph(dict)

@@ -1,6 +1,7 @@
 from langchain_core.tools import ToolException, tool
 
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.agents.utils import PromptWrapper
 
@@ -13,9 +14,8 @@ class LLMRetrieval(GraphFactory):
         self.search_prompt = search_prompt
         self.do_review = do_review
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
 
         return (
             self.search_prompt.as_runnable(to_dict=True)

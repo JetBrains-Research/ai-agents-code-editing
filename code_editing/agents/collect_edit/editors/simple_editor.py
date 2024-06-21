@@ -11,6 +11,7 @@ from langgraph.graph import END, StateGraph
 from code_editing.agents.collect_edit.collect_edit import CollectEditState
 from code_editing.agents.collect_edit.editors.util import MarkdownOutputParser, process_edit
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import parse_file, write_file_full
 from code_editing.agents.utils import PromptWrapper
 
@@ -24,7 +25,7 @@ class SimpleEditor(GraphFactory):
         super().__init__()
         self.edit_prompt = edit_prompt
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
         workflow = StateGraph(EditorState)
 
         agent_executor = self._agent_executor(
@@ -65,7 +66,7 @@ class SimpleEditor(GraphFactory):
                         pass
                 raise OutputParserException("Failed to edit the code")
 
-            file = parse_file(file_name, retrieval_helper.repo_path)
+            file = parse_file(file_name, run_overview_manager.repo_path)
             new_code = process_edit(file, lines, edit_lambda)
 
             # Check linter

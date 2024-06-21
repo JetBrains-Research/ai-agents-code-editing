@@ -3,7 +3,9 @@ from typing import Optional
 from langchain_core.runnables import RunnableLambda
 
 from code_editing.agents.collect_edit.collect_edit import CollectEditState
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
 
@@ -18,9 +20,9 @@ class AsIsRetrieval(GraphFactory):
         if (k is None) == (total_context is None):
             raise ValueError("Either k or total_context should be provided")
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+        # noinspection PyTypeChecker
+        retrieval_helper: RetrievalHelper = run_overview_manager.get_ctx_provider("retrieval_helper")
 
         def search(state: CollectEditState, config) -> CollectEditState:
             if self.k is not None:

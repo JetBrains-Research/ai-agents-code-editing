@@ -7,6 +7,7 @@ from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from typing_extensions import Self
 
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import dummy
 
 
@@ -32,7 +33,7 @@ class GraphFactory(ABC):
         self._llm: Optional[BaseChatModel] = None
 
     @abstractmethod
-    def build(self, *args, **kwargs) -> Runnable[AgentInput, Any]:
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs) -> Runnable[AgentInput, Any]:
         pass
 
     # Utility functions for the derived classes

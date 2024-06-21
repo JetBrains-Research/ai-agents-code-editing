@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.tools.base_tool import CEBaseTool
 from code_editing.agents.tools.common import lines_format_document
 
@@ -19,8 +20,8 @@ class CodeSearchTool(CEBaseTool):
         self.counter = 0
         self.do_add_to_viewed = do_add_to_viewed
 
-        if self.retrieval_helper is None:
-            raise ValueError("Retrieval helper is required for code search tool")
+        # noinspection PyTypeChecker
+        self.retrieval_helper = self.run_overview_manager.get_ctx_provider("retrieval_helper")
 
     class CodeSearchToolInput(BaseModel):
         query: str = Field(
@@ -41,7 +42,7 @@ class CodeSearchTool(CEBaseTool):
     """
     args_schema = CodeSearchToolInput
 
-    def _run(self, query: str, limit: int = 10, offset: int = 0, run_manager=None) -> str:
+    def _run_tool(self, query: str, limit: int = 10, offset: int = 0, run_manager=None) -> str:
         # Check the calls limit
         if self.calls_limit is not None and self.counter >= self.calls_limit:
             return "Code search calls limit reached. You can finish the run. Please, do not run the tool again."
@@ -71,3 +72,4 @@ class CodeSearchTool(CEBaseTool):
     calls_limit: Optional[int] = None
     counter: int = 0
     do_add_to_viewed: bool = True
+    retrieval_helper: RetrievalHelper = None

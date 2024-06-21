@@ -23,7 +23,7 @@ class ViewFileTool(CEBaseTool):
     Inputs are the file name, the start index and the context size."""
     args_schema = ViewFileToolInput
 
-    def _run(self, file_name: str, start_index: int, context: int):
+    def _run_tool(self, file_name: str, start_index: int, context: int):
         start_index = int(start_index)
         file = parse_file(file_name, self.repo_path)
         contents, lines, start, end = read_file(context, file, start_index)

@@ -47,6 +47,8 @@ def inference_loop(
     progress_bar = tqdm(total=end - start, desc="Inference Loop")
     num_added = 0
 
+    run_summary = {}
+
     def process_datapoint(i):
         repo_lock = data_source.get_lock(i)
         with repo_lock:
@@ -88,9 +90,21 @@ def inference_loop(
                     else:
                         logger.error(f"Failed to predict for #{i} {row_info} after {inference_config.num_tries} tries")
 
-                # Store the results
+                # Get the lines for editing
                 viewed_lines = res.get("viewed_lines", {})
                 viewed_lines = json.dumps({k: list(v) for k, v in viewed_lines.items() if v})
+                # Get run summary
+                new_run_summary = res.get("run", {})
+                if wandb.run is not None:
+                    # upd tools
+                    if "tools" in new_run_summary:
+                        for tool in new_run_summary["tools"]:
+                            for k, v in new_run_summary["tools"][tool].items():
+                                run_summary.setdefault("tools", {}).setdefault(tool, {}).setdefault(k, 0)
+                                run_summary["tools"][tool][k] += v
+                    # log
+                    wandb.log(run_summary)
+                # Add the result to the dataframe
                 df.loc[i - start] = [y_pred, data.diff_true, data.repo, data.base_hash, data.message, viewed_lines]
                 # Update the progress bar
                 num_added += 1

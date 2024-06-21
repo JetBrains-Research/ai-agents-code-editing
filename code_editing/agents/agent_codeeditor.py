@@ -5,6 +5,7 @@ from hydra.utils import instantiate
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEInput, CEOutput, CodeEditor
@@ -46,15 +47,19 @@ class AgentCodeEditor(CodeEditor):
         # Context providers that help the agent to search for the code
         context_providers = {k: instantiate(v, **generation_kwargs) for k, v in self.context_providers_cfg.items()}
 
+        run_overview_manager = RunOverviewManager(
+            **generation_kwargs,
+            context_providers=context_providers,
+        )
+
         # Tools available to the agent
         tools = self.tool_factory.build(
-            **generation_kwargs,
-            **context_providers,
+            run_overview_manager=run_overview_manager,
             root_span=root_span,  # W&B root span
         )
 
         # Build the graph runnable
-        app = self.graph_factory.tools(tools).build(**context_providers)
+        app = self.graph_factory.tools(tools).build(run_overview_manager=run_overview_manager)
 
         # Diff collection
         def to_ceoutput(state):
@@ -64,7 +69,7 @@ class AgentCodeEditor(CodeEditor):
             if viewed_lines is None:
                 logging.warning("No viewed lines found in the graph output")
                 viewed_lines = {}
-            return {"prediction": diff, "viewed_lines": viewed_lines}
+            return {"prediction": diff, "viewed_lines": viewed_lines, "run": run_overview_manager.get_run_summary()}
 
         # Invoke the graph
         return (app | RunnableLambda(to_ceoutput, name="Collect Diff")).invoke(

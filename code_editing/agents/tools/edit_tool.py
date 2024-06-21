@@ -2,6 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.tools.base_tool import CEBaseTool
 from code_editing.agents.tools.common import my_format_fragment, parse_file, read_file
 from code_editing.code_editor import CEBackbone
@@ -39,10 +40,10 @@ class EditTool(CEBaseTool):
         if self.backbone is None:
             raise ValueError("Backbone is required for the edit tool")
 
-        if self.retrieval_helper is None:
-            raise ValueError("Retrieval helper is required for the edit tool")
+        # noinspection PyTypeChecker
+        self.retrieval_helper = self.run_overview_manager.get_ctx_provider("retrieval_helper")
 
-    def _run(self, file_name: str, start_index: int, instruction: str, context: int = 5) -> Any:
+    def _run_tool(self, file_name: str, start_index: int, instruction: str, context: int = 5) -> Any:
         start_index = int(start_index)
         file = parse_file(file_name, self.repo_path)
         contents, lines, start, end = read_file(context, file, start_index)
@@ -65,4 +66,5 @@ class EditTool(CEBaseTool):
         return f"edit"
 
     backbone: CEBackbone = None
+    retrieval_helper: RetrievalHelper = None
     root_span: Any = None

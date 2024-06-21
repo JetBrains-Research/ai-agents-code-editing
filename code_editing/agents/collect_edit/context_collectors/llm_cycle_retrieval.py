@@ -6,6 +6,7 @@ from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
 from code_editing.agents.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
+from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.utils import PromptWrapper
 
 
@@ -17,9 +18,8 @@ class LLMCycleRetrieval(LLMRetrieval):
         self.review_prompt = review_prompt
         self.max_tries = max_tries
 
-    def build(self, *args, retrieval_helper=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
+    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
 
         agent_executor = self._agent_executor(
             tools=self.get_llm_retrieval_tools(retrieval_helper),

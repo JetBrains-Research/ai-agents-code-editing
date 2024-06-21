@@ -44,6 +44,7 @@ class LLMFixedCtxRetrievalConfig(LLMRetrievalConfig):
 @dataclass
 class ACRRetrievalConfig(ContextCollectorsConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.collect_edit.context_collectors.ACRRetrieval"
+    use_show_definition: bool = False
 
 
 @dataclass

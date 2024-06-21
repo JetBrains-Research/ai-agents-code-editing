@@ -332,13 +332,13 @@ def get_code_snippets(file_full_path: str, start: int, end: int, show_lineno: bo
         end (int): End line number. (1-based)
     """
     with open(file_full_path) as f:
-        file_content = f.readlines()
+        file_content = f.read().split("\n")
     snippet = ""
-    for i in range(start - 1, end):
+    for i in range(start - 1, min(end, len(file_content))):
         if show_lineno:
-            snippet += f"{i+1} {file_content[i]}"
+            snippet += f"{i+1} {file_content[i]}\n"
         else:
-            snippet += file_content[i]
+            snippet += file_content[i] + "\n"
     return snippet
 
 

@@ -20,9 +20,7 @@ class ACRSearchClass(CEBaseTool):
         self.args_schema = self.ACRSearchClassInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchClassInput(BaseModel):
         class_name: str = Field(description="Name of the class to search for", examples=["MyClass"])
@@ -33,7 +31,7 @@ class ACRSearchClass(CEBaseTool):
     """
     args_schema = ACRSearchClassInput
 
-    def _run(self, class_name: str) -> str:
+    def _run_tool(self, class_name: str) -> str:
         return self.search_manager.search_class(class_name)[0]
 
     @property
@@ -49,9 +47,7 @@ class ACRSearchMethodInFile(CEBaseTool):
         self.args_schema = self.ACRSearchMethodInFileInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchMethodInFileInput(BaseModel):
         method_name: str = Field(description="Name of the method to search for", examples=["get_user_by_id"])
@@ -63,7 +59,7 @@ class ACRSearchMethodInFile(CEBaseTool):
     """
     args_schema = ACRSearchMethodInFileInput
 
-    def _run(self, method_name: str, file_path: str) -> str:
+    def _run_tool(self, method_name: str, file_path: str) -> str:
         return self.search_manager.search_method_in_file(method_name, file_path)[0]
 
     @property
@@ -79,9 +75,7 @@ class ACRSearchMethodInClass(CEBaseTool):
         self.args_schema = self.ACRSearchMethodInClassInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchMethodInClassInput(BaseModel):
         method_name: str = Field(description="Name of the method to search for", examples=["get_user_by_id"])
@@ -94,7 +88,7 @@ class ACRSearchMethodInClass(CEBaseTool):
 
     args_schema = ACRSearchMethodInClassInput
 
-    def _run(self, method_name: str, class_name: str) -> str:
+    def _run_tool(self, method_name: str, class_name: str) -> str:
         return self.search_manager.search_method_in_class(method_name, class_name)[0]
 
     @property
@@ -110,9 +104,7 @@ class ACRSearchMethod(CEBaseTool):
         self.args_schema = self.ACRSearchMethodInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchMethodInput(BaseModel):
         method_name: str = Field(description="Name of the method to search for", examples=["get_user_by_id"])
@@ -124,7 +116,7 @@ class ACRSearchMethod(CEBaseTool):
 
     args_schema = ACRSearchMethodInput
 
-    def _run(self, method_name: str) -> str:
+    def _run_tool(self, method_name: str) -> str:
         return self.search_manager.search_method(method_name)[0]
 
     @property
@@ -140,9 +132,7 @@ class ACRSearchCode(CEBaseTool):
         self.args_schema = self.ACRSearchCodeInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchCodeInput(BaseModel):
         code_str: str = Field(description="Code snippet to search for", examples=["import os"])
@@ -154,7 +144,7 @@ class ACRSearchCode(CEBaseTool):
 
     args_schema = ACRSearchCodeInput
 
-    def _run(self, code_str: str) -> str:
+    def _run_tool(self, code_str: str) -> str:
         return self.search_manager.search_code(code_str)[0]
 
     @property
@@ -170,9 +160,7 @@ class ACRSearchCodeInFile(CEBaseTool):
         self.args_schema = self.ACRSearchCodeInFileInput
         if self.dry_run:
             return
-        if "search_manager" not in kwargs:
-            raise ValueError("Search manager is required for code search tool")
-        self.search_manager = kwargs.get("search_manager")
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
 
     class ACRSearchCodeInFileInput(BaseModel):
         code_str: str = Field(description="Code snippet to search for", examples=["import os"])
@@ -185,8 +173,38 @@ class ACRSearchCodeInFile(CEBaseTool):
 
     args_schema = ACRSearchCodeInFileInput
 
-    def _run(self, code_str: str, file_path: str) -> str:
+    def _run_tool(self, code_str: str, file_path: str) -> str:
         return self.search_manager.search_code_in_file(code_str, file_path)[0]
+
+    @property
+    def short_name(self) -> Optional[str]:
+        return "acr"
+
+    search_manager: Any = None
+
+
+class ACRShowDefinition(CEBaseTool):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.args_schema = self.ACRShowDefinitionInput
+        if self.dry_run:
+            return
+        self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
+
+    class ACRShowDefinitionInput(BaseModel):
+        symbol: str = Field(description="Code symbol to show definition for", examples=["model", "foo", "A"])
+        line_number: int = Field(description="Line number (1-indexed) containing the symbol", examples=[1, 10])
+        file_path: str = Field(description="Path with the symbol", examples=["path/to/file.py"])
+
+    name = "show-definition"
+    description = """
+    Show the code where this symbol (variable/method/function/class) is defined.
+    """
+
+    args_schema = ACRShowDefinitionInput
+
+    def _run_tool(self, symbol: str, line_number: int, file_path: str) -> str:
+        return self.search_manager.show_definition(symbol, int(line_number), file_path)
 
     @property
     def short_name(self) -> Optional[str]:

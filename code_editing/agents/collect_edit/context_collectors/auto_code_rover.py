@@ -14,6 +14,7 @@ from langgraph.graph import END, StateGraph
 from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
 from code_editing.agents.context_providers.acr_search.search_utils import to_relative_path
 from code_editing.agents.graph_factory import GraphFactory
+from code_editing.agents.run import RunOverviewManager
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
 You are working on an issue submitted to your project.
@@ -28,6 +29,7 @@ prompt = (
     "\n- search_method(method_name: str): Search for a method in the entire codebase"
     "\n- search_code(code_str: str): Search for a code snippet in the entire codebase"
     "\n- search_code_in_file(code_str: str, file_path: str): Search for a code snippet in a given file file"
+    "\n- show_definition(symbol: str, line_no: int, file_path: str): Show the definition of a symbol in a given file"
     "\n\nNote that you can use multiple search APIs in one round."
     "\n\nNow analyze the issue and select necessary APIs to get more context of the project. Each API call must have concrete arguments as inputs."
 )
@@ -46,6 +48,7 @@ search_class_in_file(self, class_name, file_name: str)
 search_class(class_name: str)
 search_code_in_file(code_str: str, file_path: str)
 search_code(code_str: str)
+show_definition(symbol: str, line_no: int, file_path: str)
 
 Provide your answer in JSON structure like this, you should ignore the argument placeholders in api calls.
 For example, search_code(code_str="str") should be search_code("str")
@@ -146,16 +149,28 @@ def prepare_issue_prompt(problem_stmt: str) -> str:
     return result
 
 
+def remove_unwanted_lines(text: str, word: str) -> str:
+    return "\n".join([e for e in text.split("\n") if word not in e])
+
+
 class ACRRetrieval(GraphFactory):
     name = "acr_retrieval"
 
-    def __init__(self, *args, max_tries: int = 5, **kwargs):
+    def __init__(self, *args, max_tries: int = 5, use_show_definition: bool = False, **kwargs):
         # super().__init__(*args, **kwargs)
         super().__init__()
         self.max_tries = max_tries
+        self.prompt = prompt
+        self.proxy_prompt = PROXY_PROMPT
+        if not use_show_definition:
+            # remove corresponding line
+            self.prompt = remove_unwanted_lines(self.prompt, "show_definition")
+            self.proxy_prompt = remove_unwanted_lines(self.proxy_prompt, "show_definition")
+        print(self.prompt)
+        print(self.proxy_prompt)
 
     def proxy_run(self, text: str) -> Optional[dict]:
-        messages = [SystemMessage(PROXY_PROMPT)]
+        messages = [SystemMessage(self.proxy_prompt)]
         messages.append(HumanMessage(text))
         llm: BaseChatModel = self._llm
         parser = JsonOutputParser()
@@ -174,15 +189,13 @@ class ACRRetrieval(GraphFactory):
         logging.warning("Failed to get a valid response after max tries.")
         return None
 
-    def build(self, *args, retrieval_helper=None, search_manager=None, **kwargs):
-        if retrieval_helper is None:
-            raise ValueError("Retrieval helper is not set")
-        if search_manager is None:
-            raise ValueError("Search manager is not set")
+    def build(self, *args, run_overview_manager: RunOverviewManager, **kwargs):
+        # noinspection PyTypeChecker
+        search_manager: SearchManager = run_overview_manager.get_ctx_provider("search_manager")
 
         workflow = StateGraph(dict)
         llm: BaseChatModel = self._llm
-        search_text = prompt
+        search_text = self.prompt
 
         iters = 0
 
@@ -239,7 +252,7 @@ class ACRRetrieval(GraphFactory):
                 return state
 
         def do_search(state):
-            nonlocal messages, llm
+            nonlocal messages, llm, run_overview_manager
             api_calls = state["api_calls"]
             if api_calls:
                 tool_output = ""
@@ -247,7 +260,14 @@ class ACRRetrieval(GraphFactory):
                     try:
                         func_name, func_args = parse_function_invocation(api_call)
                         function = getattr(search_manager, func_name)
-                        res, summary, _ = function(*func_args)
+                        try:
+                            run_overview_manager.add_tool_use(func_name)
+                            res, summary, ok = function(*func_args)
+                            if not ok:
+                                run_overview_manager.add_tool_failure(func_name)
+                        except Exception:
+                            run_overview_manager.add_tool_error(func_name)
+                            raise
                         tool_output += f"Result of {func_name}({', '.join(func_args)}):\n{res}\n"
                     except Exception as e:
                         tool_output += f"Error in {api_call}: {e}\n"
@@ -279,7 +299,7 @@ class ACRRetrieval(GraphFactory):
             segments = search_manager.viewed_lines
             ctx = {}
             for file_name, st, end in segments:
-                fname = to_relative_path(file_name, retrieval_helper.repo_path).replace("\\", "/")
+                fname = to_relative_path(file_name, run_overview_manager.repo_path).replace("\\", "/")
                 ctx.setdefault(fname, set()).update(range(st, end + 1))
             return {"collected_context": ctx}
 
