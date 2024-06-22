@@ -8,8 +8,9 @@ from code_editing.utils import wandb_utils
 
 class ToolInfo(TypedDict):
     calls: int
-    errors: int
+    success: int
     failures: int
+    errors: int
 
 
 # enum class: calls, errors, failures
@@ -35,6 +36,7 @@ class RunOverviewManager:
         self.start_ms = wandb_utils.get_current_ms()
 
     def log_tool_use(self, tool_name, status: ToolUseStatus):
+        status = status.value
         self.tools_info.setdefault(tool_name, {}).setdefault(status, 0)
         self.tools_info[tool_name][status] += 1
 
@@ -42,9 +44,7 @@ class RunOverviewManager:
         end_ms = wandb_utils.get_current_ms()
         return {
             "tools": self.tools_info,
-            "start_ms": self.start_ms,
-            "end_ms": end_ms,
-            "duration_ms": end_ms - self.start_ms,
+            "duration_sec": (end_ms - self.start_ms) / 1000,
         }
 
     def get_ctx_provider(self, ctx_provider_name) -> ContextProvider:

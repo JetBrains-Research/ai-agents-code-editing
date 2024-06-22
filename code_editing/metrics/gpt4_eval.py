@@ -48,11 +48,6 @@ class GPT4EvaluationMetric(BaseSentenceMetric):
         if found:
             try:
                 res = float(found[0])
-                # Log to W&B
-                if wandb.run is not None:
-                    wandb_utils.gpt4_eval_trace(
-                        diff_true, patch, start_ms, end_ms, response, res, metadata={"model": self.model_name}
-                    )
                 return res
             except:
                 pass

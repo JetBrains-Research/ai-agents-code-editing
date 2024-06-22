@@ -1,13 +1,12 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
 import torch
+import weave
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, GenerationConfig, set_seed
-from wandb.sdk.data_types.trace_tree import Trace
 
 from code_editing.code_editor import CEBackbone, CEInput, CEOutput
 from code_editing.configs.backbones_configs import HFGenerationConfig, HFModelConfig
-from code_editing.utils import wandb_utils
 from code_editing.utils.prompts.base_prompt import CEPrompt
 
 
@@ -83,15 +82,7 @@ class HuggingFaceBackbone(CEBackbone):
         if not self._prompt:
             raise ValueError("Prompt is required for HuggingFace models.")
 
-        # Initialize the root span for W&B
-        parent_span: Optional[Trace] = kwargs.get("parent_span", None)
-
-        @wandb_utils.log_prompt_trace(
-            parent_span,
-            metadata={
-                "prompt_name": self._prompt.name,
-            },
-        )
+        @weave.op(name="prompt")
         def get_inp(r):
             return self._prompt.hf(
                 r,
@@ -102,14 +93,7 @@ class HuggingFaceBackbone(CEBackbone):
         preprocessed_inputs = get_inp(req)
         encoding = self._tokenizer(preprocessed_inputs, return_tensors="pt").to(self._device)
 
-        @wandb_utils.log_llm_trace(
-            parent_span=parent_span,
-            model_name=self._name_or_path,
-            metadata={
-                "model_config": self._model.config.to_dict(),
-                "generation_config": self._generation_config.to_dict(),
-            },
-        )
+        @weave.op(name="generate")
         def get_resp(_):
             return self._model.generate(
                 **encoding,

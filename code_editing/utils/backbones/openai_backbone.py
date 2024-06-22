@@ -1,11 +1,8 @@
 import logging
-from typing import Optional
 
 from openai import OpenAI
-from wandb.sdk.data_types.trace_tree import Trace
 
 from code_editing.code_editor import CEBackbone, CEInput, CEOutput
-from code_editing.utils import wandb_utils
 from code_editing.utils.prompts.base_prompt import CEPrompt
 
 
@@ -24,19 +21,8 @@ class OpenAIBackbone(CEBackbone):
         logging.getLogger("httpx").setLevel(logging.WARNING)
 
     def generate_diff(self, req: CEInput, **kwargs) -> CEOutput:
-        # Initialize the root span for W&B
-        parent_span: Optional[Trace] = kwargs.get("parent_span", None)
+        preprocessed_inputs = self._prompt.chat(req)
 
-        preprocessed_inputs = wandb_utils.log_prompt_trace(
-            parent_span,
-            metadata={
-                "prompt_name": self._prompt.name,
-            },
-        )(
-            self._prompt.chat
-        )(req)
-
-        @wandb_utils.log_llm_trace(parent_span=parent_span, model_name=self._model_name)
         def openai_request(inp):
             resp = self.api.chat.completions.create(
                 messages=inp,

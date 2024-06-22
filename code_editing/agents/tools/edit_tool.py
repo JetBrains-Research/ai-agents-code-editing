@@ -27,7 +27,7 @@ class EditTool(CEBaseTool):
     The instruction should be a prompt for the editing LLM."""
     args_schema = EditToolInput
 
-    def __init__(self, backbone: CEBackbone = None, root_span=None, **kwargs):
+    def __init__(self, backbone: CEBackbone = None, **kwargs):
         super().__init__(**kwargs)
         self.args_schema = self.EditToolInput
 
@@ -35,7 +35,6 @@ class EditTool(CEBaseTool):
             return
 
         self.backbone = backbone
-        self.root_span = root_span
 
         if self.backbone is None:
             raise ValueError("Backbone is required for the edit tool")
@@ -48,9 +47,7 @@ class EditTool(CEBaseTool):
         file = parse_file(file_name, self.repo_path)
         contents, lines, start, end = read_file(context, file, start_index)
         # Send to the editing LLM
-        resp = self.backbone.generate_diff(
-            {"instruction": instruction, "code_base": {file_name: contents}}, parent_span=self.root_span
-        )
+        resp = self.backbone.generate_diff({"instruction": instruction, "code_base": {file_name: contents}})
         new_contents = resp["prediction"]
         # Save
         with open(file, "w") as f:
@@ -67,4 +64,3 @@ class EditTool(CEBaseTool):
 
     backbone: CEBackbone = None
     retrieval_helper: RetrievalHelper = None
-    root_span: Any = None

@@ -1,6 +1,7 @@
 import logging
 from typing import Dict
 
+import weave
 from hydra.utils import instantiate
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 
@@ -11,7 +12,6 @@ from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEInput, CEOutput, CodeEditor
 from code_editing.configs.agents.context_providers.context_config import ContextConfig
 from code_editing.utils.git_utils import get_head_diff_unsafe
-from code_editing.utils.wandb_utils import log_codeeditor_trace
 
 
 class AgentCodeEditor(CodeEditor):
@@ -35,8 +35,8 @@ class AgentCodeEditor(CodeEditor):
         self.context_providers_cfg = context_providers_cfg
         self.runnable_config = runnable_config
 
-    @log_codeeditor_trace()
-    def generate_diff(self, req: CEInput, root_span) -> CEOutput:
+    @weave.op()
+    def generate_diff(self, req: CEInput) -> CEOutput:
         # Get repository full path
         repo_path = req["code_base"].get(CheckoutExtractor.REPO_KEY, None)
         if repo_path is None:
@@ -55,7 +55,6 @@ class AgentCodeEditor(CodeEditor):
         # Tools available to the agent
         tools = self.tool_factory.build(
             run_overview_manager=run_overview_manager,
-            root_span=root_span,  # W&B root span
         )
 
         # Build the graph runnable
