@@ -66,6 +66,12 @@ scikit-learn = "^1.5.0"
 scipy = "^1.13.1"
 
 
+[tool.poetry.group.aider.dependencies]
+grep-ast = "0.3.2"
+tree-sitter = "0.21.3"
+tree-sitter-languages = "1.10.2"
+diskcache = "5.6.3"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

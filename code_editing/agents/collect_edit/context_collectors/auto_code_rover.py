@@ -14,7 +14,7 @@ from langgraph.graph import END, StateGraph
 from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
 from code_editing.agents.context_providers.acr_search.search_utils import to_relative_path
 from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.run import RunOverviewManager, ToolUseStatus
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
 You are working on an issue submitted to your project.
@@ -166,8 +166,6 @@ class ACRRetrieval(GraphFactory):
             # remove corresponding line
             self.prompt = remove_unwanted_lines(self.prompt, "show_definition")
             self.proxy_prompt = remove_unwanted_lines(self.proxy_prompt, "show_definition")
-        print(self.prompt)
-        print(self.proxy_prompt)
 
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(self.proxy_prompt)]
@@ -261,12 +259,14 @@ class ACRRetrieval(GraphFactory):
                         func_name, func_args = parse_function_invocation(api_call)
                         function = getattr(search_manager, func_name)
                         try:
-                            run_overview_manager.add_tool_use(func_name)
+                            run_overview_manager.log_tool_use(func_name, ToolUseStatus.CALL)
                             res, summary, ok = function(*func_args)
-                            if not ok:
-                                run_overview_manager.add_tool_failure(func_name)
+                            if ok:
+                                run_overview_manager.log_tool_use(func_name, ToolUseStatus.OK)
+                            else:
+                                run_overview_manager.log_tool_use(func_name, ToolUseStatus.FAIL)
                         except Exception:
-                            run_overview_manager.add_tool_error(func_name)
+                            run_overview_manager.log_tool_use(func_name, ToolUseStatus.THROWN)
                             raise
                         tool_output += f"Result of {func_name}({', '.join(func_args)}):\n{res}\n"
                     except Exception as e:

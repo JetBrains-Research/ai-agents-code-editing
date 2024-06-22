@@ -1,16 +1,23 @@
 import collections
-from dataclasses import asdict, dataclass
-from typing import Dict
+from enum import Enum
+from typing import Dict, TypedDict
 
 from code_editing.agents.context_providers.context_provider import ContextProvider
 from code_editing.utils import wandb_utils
 
 
-@dataclass
-class ToolInfo:
-    calls: int = 0
-    errors: int = 0
-    failures: int = 0
+class ToolInfo(TypedDict):
+    calls: int
+    errors: int
+    failures: int
+
+
+# enum class: calls, errors, failures
+class ToolUseStatus(Enum):
+    CALL = "calls"
+    OK = "success"
+    FAIL = "failures"
+    THROWN = "errors"
 
 
 class RunOverviewManager:
@@ -24,22 +31,17 @@ class RunOverviewManager:
         self.data_path = data_path
         self.context_providers = context_providers
         self.metadata = {"repo_path": repo_path, "data_path": data_path, "context_providers": context_providers.keys()}
-        self.tools_info = collections.defaultdict(ToolInfo)
+        self.tools_info = collections.defaultdict(dict)
         self.start_ms = wandb_utils.get_current_ms()
 
-    def add_tool_use(self, tool_name):
-        self.tools_info[tool_name].calls += 1
-
-    def add_tool_error(self, tool_name):
-        self.tools_info[tool_name].errors += 1
-
-    def add_tool_failure(self, tool_name):
-        self.tools_info[tool_name].failures += 1
+    def log_tool_use(self, tool_name, status: ToolUseStatus):
+        self.tools_info.setdefault(tool_name, {}).setdefault(status, 0)
+        self.tools_info[tool_name][status] += 1
 
     def get_run_summary(self):
         end_ms = wandb_utils.get_current_ms()
         return {
-            "tools": {k: asdict(v) for k, v in self.tools_info.items()},
+            "tools": self.tools_info,
             "start_ms": self.start_ms,
             "end_ms": end_ms,
             "duration_ms": end_ms - self.start_ms,

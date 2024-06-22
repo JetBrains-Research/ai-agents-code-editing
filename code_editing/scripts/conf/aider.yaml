@@ -1,0 +1,12 @@
+defaults:
+  - agent_common
+  - graph: collect_edit
+  - graph/context_collector: aider
+  - graph/editor: simple_editor
+  - _self_
+
+graph:
+  only_collect: true
+
+inference:
+  skip_empty_diffs: false

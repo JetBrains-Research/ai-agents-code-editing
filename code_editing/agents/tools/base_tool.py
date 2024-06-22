@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from langchain_core.tools import BaseTool, ToolException
 
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.run import RunOverviewManager, ToolUseStatus
 
 
 class CEBaseTool(BaseTool, ABC):
@@ -43,17 +43,18 @@ class CEBaseTool(BaseTool, ABC):
 
     def _run(self, *args: Any, **kwargs: Any) -> Any:
         # Track tool usage
-        self.run_overview_manager.add_tool_use(self.name)
+        self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.CALL)
         try:
             # Run the tool
             self._run_tool(*args, **kwargs)
+            self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.OK)
         except ToolException:
             # Track tool failure
-            self.run_overview_manager.add_tool_failure(self.name)
+            self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.FAIL)
             raise
         except Exception:
             # Track tool error
-            self.run_overview_manager.add_tool_error(self.name)
+            self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.THROWN)
             raise
 
     @abstractmethod

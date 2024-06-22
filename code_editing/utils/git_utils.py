@@ -212,7 +212,6 @@ def apply_patch_unsafe(repo, patch: str):
             #  --recount: Fix line numbers in the patch
             repo.git.execute(["git", "apply", "--unidiff-zero", "--recount", "--ignore-whitespace", file_name])
     except Exception as e:
-        print(e)
         os.remove(file_name)
         raise e
     os.remove(file_name)

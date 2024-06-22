@@ -37,8 +37,14 @@ class BM25RetrievalConfig(RetrievalConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.context_providers.retrieval.BM25Retrieval"
 
 
+@dataclass
+class AiderRepoMapConfig(ContextConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.context_providers.aider.AiderRepoMap"
+
+
 cs = ConfigStore.instance()
 cs.store(name="context", node=ContextConfig)
 cs.store(name="acr_search", group="context", node=ACRSearchManagerConfig)
 cs.store(name="faiss", group="context", node=FaissRetrievalConfig)
 cs.store(name="bm25", group="context", node=BM25RetrievalConfig)
+cs.store(name="aider", group="context", node=AiderRepoMapConfig)

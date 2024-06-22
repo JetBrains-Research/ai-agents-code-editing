@@ -13,3 +13,4 @@ class InferenceConfig:
     output_path: Optional[str] = None
     wandb: WandbConfig = field(default_factory=WandbConfig)
     num_tries: int = 5
+    skip_empty_diffs: bool = True

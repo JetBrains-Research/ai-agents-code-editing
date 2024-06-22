@@ -1,3 +1,4 @@
 defaults:
   - acr_search@search_manager
   - retrieval_helper@retrieval_helper
+  - aider@aider

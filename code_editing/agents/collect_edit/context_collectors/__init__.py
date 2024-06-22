@@ -1,3 +1,4 @@
+from code_editing.agents.collect_edit.context_collectors.aider import AiderRetrieval
 from code_editing.agents.collect_edit.context_collectors.as_is_retrieval import AsIsRetrieval
 from code_editing.agents.collect_edit.context_collectors.auto_code_rover import ACRRetrieval
 from code_editing.agents.collect_edit.context_collectors.llm_cycle_retrieval import LLMCycleRetrieval
@@ -12,4 +13,5 @@ __all__ = [
     "LLMFixedCtxRetrieval",
     "ACRRetrieval",
     "MyACRRetrieval",
+    "AiderRetrieval",
 ]

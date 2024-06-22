@@ -76,7 +76,7 @@ def inference_loop(
                     row_info = f"{data.repo}@{data.base_hash[:8]}"
                     res = task.result()
                     y_pred = res["prediction"] + "\n"
-                    if y_pred.strip() == "":
+                    if y_pred.strip() == "" and inference_config.skip_empty_diffs:
                         raise ValueError("Empty prediction")
                 except Exception as e:
                     if "Empty prediction" in str(e):
@@ -102,6 +102,9 @@ def inference_loop(
                             for k, v in new_run_summary["tools"][tool].items():
                                 run_summary.setdefault("tools", {}).setdefault(tool, {}).setdefault(k, 0)
                                 run_summary["tools"][tool][k] += v
+                        new_run_summary.pop("tools")
+                    # upd rest
+                    run_summary.update(new_run_summary)
                     # log
                     wandb.log(run_summary)
                 # Add the result to the dataframe

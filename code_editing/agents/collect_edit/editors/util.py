@@ -93,3 +93,22 @@ class MarkdownOutputParser(BaseOutputParser):
 
     key: Optional[str] = None
     pattern: str = ""
+
+
+class TagParser(BaseOutputParser):
+    def __init__(self, tag: str):
+        super().__init__()
+        self.tag = tag
+
+    def parse(self, text: str) -> dict:
+        matches = re.findall(f"<{self.tag}>(.*?)</{self.tag}>", text, re.DOTALL)
+        return {"matches": matches}
+
+    def get_format_instructions(self) -> str:
+        return f'The output should be a text with the tag "<{self.tag}>...</{self.tag}>".'
+
+    @property
+    def _type(self) -> str:
+        return "tag_parser"
+
+    tag: str = ""
