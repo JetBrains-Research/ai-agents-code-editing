@@ -72,6 +72,12 @@ tree-sitter = "0.21.3"
 tree-sitter-languages = "1.10.2"
 diskcache = "5.6.3"
 
+[tool.poetry.group.grazie]
+optional = true
+
+[tool.poetry.group.grazie.dependencies]
+grazie-langchain-utils = {version = "^0.0.4", source = "space-ai-agents"}
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -91,3 +97,13 @@ python_version = "3.10"
 [[tool.mypy.overrides]]
 module = []
 ignore_missing_imports = true
+
+[[tool.poetry.source]]
+name = "space-ai-agents"
+url = "https://packages.jetbrains.team/pypi/p/ml-4-se-lab/ai-agents/simple"
+priority = "explicit"
+
+[[tool.poetry.source]]
+name = "space-grazie-ml"
+url = "https://packages.jetbrains.team/pypi/p/grazi/grazie-ml/simple"
+priority = "supplemental"
