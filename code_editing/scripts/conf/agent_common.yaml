@@ -8,7 +8,6 @@ defaults:
 
 inference:
   checkpoint_iters: 10
-  end_at: 50
   wandb:
     enable: true
   run_suffix: "-4o"
