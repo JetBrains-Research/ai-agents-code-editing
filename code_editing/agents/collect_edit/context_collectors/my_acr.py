@@ -148,7 +148,7 @@ class MyACRRetrieval(GraphFactory):
     name = "my_acr_retrieval"
 
     def __init__(self, *args, max_tries: int = 5, max_iters: int = 15, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.max_tries = max_tries
         self.max_iters = max_iters
 

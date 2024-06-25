@@ -13,7 +13,7 @@ class AsIsRetrieval(GraphFactory):
     name = "as_is_retrieval"
 
     def __init__(self, k: Optional[int] = 10, total_context: Optional[int] = None, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.k = k
         self.total_context = total_context
 

@@ -156,9 +156,8 @@ def remove_unwanted_lines(text: str, word: str) -> str:
 class ACRRetrieval(GraphFactory):
     name = "acr_retrieval"
 
-    def __init__(self, *args, max_tries: int = 5, use_show_definition: bool = False, **kwargs):
-        # super().__init__(*args, **kwargs)
-        super().__init__()
+    def __init__(self, max_tries: int = 5, use_show_definition: bool = False, **kwargs):
+        super().__init__(**kwargs)
         self.max_tries = max_tries
         self.prompt = prompt
         self.proxy_prompt = PROXY_PROMPT

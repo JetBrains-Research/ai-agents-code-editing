@@ -10,7 +10,7 @@ class LLMRetrieval(GraphFactory):
     name = "llm_retrieval"
 
     def __init__(self, search_prompt: PromptWrapper, do_review: bool = True, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.search_prompt = search_prompt
         self.do_review = do_review
 

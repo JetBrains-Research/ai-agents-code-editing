@@ -27,7 +27,7 @@ class SelfReflection(GraphFactory):
     def __init__(
         self, agent_prompt: PromptWrapper, agent_review_prompt: PromptWrapper, review_prompt: PromptWrapper, **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.agent_prompt = agent_prompt
         self.agent_review_prompt = agent_review_prompt
         self.review_prompt = review_prompt

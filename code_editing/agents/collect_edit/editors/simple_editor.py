@@ -21,8 +21,8 @@ class EditorState(CollectEditState):
 
 
 class SimpleEditor(GraphFactory):
-    def __init__(self, edit_prompt: PromptWrapper):
-        super().__init__()
+    def __init__(self, edit_prompt: PromptWrapper, **kwargs):
+        super().__init__(**kwargs)
         self.edit_prompt = edit_prompt
 
     def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):

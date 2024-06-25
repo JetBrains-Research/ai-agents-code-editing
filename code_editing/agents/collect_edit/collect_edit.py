@@ -13,8 +13,8 @@ class CollectEditState(AgentInput):
 class CollectEdit(GraphFactory):
     name = "collect_edit"
 
-    def __init__(self, context_collector: GraphFactory, editor: GraphFactory, only_collect: bool = False):
-        super().__init__()
+    def __init__(self, context_collector: GraphFactory, editor: GraphFactory, only_collect: bool = False, **kwargs):
+        super().__init__(**kwargs)
         self.context_collector = context_collector
         self.editor = editor
         self.only_collect = only_collect

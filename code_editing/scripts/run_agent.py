@@ -15,6 +15,7 @@ from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEBackbone
 from code_editing.configs.agents.agent_config import RunAgentConfig
+from code_editing.configs.agents.llm_config import create_agent_method
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
 from code_editing.scripts.common import finish_wandb, get_cool_name, inference_loop, init_output_path, init_wandb
@@ -42,8 +43,12 @@ def main(cfg: RunAgentConfig):
     chat_prompt = prompt_factory.build()
 
     # Set up the graph factory for the agent interactions
-    graph_factory: GraphFactory = (
-        instantiate(cfg.graph).chat_prompt(chat_prompt).llm(llm).agent_executor_cfg(cfg.agent_executor)
+    graph_factory: GraphFactory = instantiate(
+        cfg.graph,
+        chat_prompt=chat_prompt,
+        llm=llm,
+        agent_executor_cfg=cfg.agent_executor,
+        create_agent_method=create_agent_method(cfg.llm),
     )
 
     # Set up the tracing tags and metadata

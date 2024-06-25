@@ -16,7 +16,7 @@ class AgentOnly(GraphFactory):
     name = "agent_only"
 
     def __init__(self, agent_prompt: PromptWrapper, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.agent_prompt = agent_prompt
 
     def build(self, *args, **kwargs) -> Runnable[AgentInput, Any]:

@@ -2,7 +2,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, TypedDict
 
-from langchain.agents import AgentExecutor, create_openai_tools_agent
+import hydra.utils
+from langchain.agents import AgentExecutor
 from langchain_core.language_models import BaseChatModel, BaseLLM
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
@@ -27,11 +28,18 @@ class GraphFactory(ABC):
 
     name = "base"
 
-    def __init__(self):
+    def __init__(
+        self,
+        chat_prompt=None,
+        agent_executor_cfg=None,
+        llm=None,
+        create_agent_method=None,
+    ):
         self._tools = []
-        self._chat_prompt = None
-        self._agent_executor_cfg = {}
-        self._llm: Optional[BaseChatModel] = None
+        self._chat_prompt = chat_prompt
+        self._agent_executor_cfg = agent_executor_cfg or {}
+        self._llm: Optional[BaseChatModel] = llm
+        self._create_agent_method = create_agent_method
 
     @abstractmethod
     def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs) -> Runnable[AgentInput, Any]:
@@ -45,7 +53,9 @@ class GraphFactory(ABC):
             tools = kwargs.pop("tools")
         if not tools:
             tools = [dummy]
-        agent = create_openai_tools_agent(self._llm, tools, self._chat_prompt)
+        agent = hydra.utils.call(
+            {"_target_": self._create_agent_method}, llm=self._llm, tools=tools, prompt=self._chat_prompt
+        )
         return AgentExecutor(
             tools=tools,
             agent=agent,
@@ -71,12 +81,17 @@ class GraphFactory(ABC):
         self._llm = llm
         return self
 
+    def create_agent_method(self, create_agent_method: str) -> Self:
+        self._create_agent_method = create_agent_method
+        return self
+
     def copy_from(self, other: "GraphFactory", copy_tools: bool = True) -> Self:
         if copy_tools:
             self._tools = other._tools
         self._chat_prompt = other._chat_prompt
         self._agent_executor_cfg = other._agent_executor_cfg
         self._llm = other._llm
+        self._create_agent_method = other._create_agent_method
         return self
 
     def get_logger(self, run_overview_manager: RunOverviewManager):
