@@ -32,13 +32,7 @@ def main(cfg: RunBaselineConfig):
     init_wandb(cfg, run_name)
 
     # Perform inference loop and save predictions
-    inference_loop(
-        baseline,
-        data_source,
-        output_path,
-        cfg.inference,
-        run_name
-    )
+    inference_loop(baseline, data_source, output_path, cfg.inference, run_name)
     finish_wandb()
 
 
