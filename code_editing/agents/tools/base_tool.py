@@ -46,8 +46,9 @@ class CEBaseTool(BaseTool, ABC):
         self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.CALL)
         try:
             # Run the tool
-            self._run_tool(*args, **kwargs)
+            res = self._run_tool(*args, **kwargs)
             self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.OK)
+            return res
         except ToolException:
             # Track tool failure
             self.run_overview_manager.log_tool_use(self.name, ToolUseStatus.FAIL)

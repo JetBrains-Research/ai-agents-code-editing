@@ -1,7 +1,6 @@
 import logging
 from typing import Dict
 
-import weave
 from hydra.utils import instantiate
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 
@@ -35,7 +34,6 @@ class AgentCodeEditor(CodeEditor):
         self.context_providers_cfg = context_providers_cfg
         self.runnable_config = runnable_config
 
-    @weave.op()
     def generate_diff(self, req: CEInput) -> CEOutput:
         # Get repository full path
         repo_path = req["code_base"].get(CheckoutExtractor.REPO_KEY, None)
@@ -50,6 +48,7 @@ class AgentCodeEditor(CodeEditor):
         run_overview_manager = RunOverviewManager(
             **generation_kwargs,
             context_providers=context_providers,
+            instance_id=req.get("instance_id", None),
         )
 
         # Tools available to the agent
@@ -70,10 +69,14 @@ class AgentCodeEditor(CodeEditor):
                 viewed_lines = {}
             return {"prediction": diff, "viewed_lines": viewed_lines, "run": run_overview_manager.get_run_summary()}
 
+        # update runnable config
+        runnable_config = self.runnable_config.copy()
+        runnable_config["run_name"] = f"{runnable_config['run_name']}.{run_overview_manager.instance_id}"
+
         # Invoke the graph
         return (app | RunnableLambda(to_ceoutput, name="Collect Diff")).invoke(
             input={"instruction": req["instruction"]},
-            config=self.runnable_config,
+            config=runnable_config,
         )
 
     @property

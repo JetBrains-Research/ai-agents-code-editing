@@ -47,7 +47,8 @@ def main(cfg: RunAgentConfig):
     )
 
     # Set up the tracing tags and metadata
-    cool_name = get_cool_name()
+    run_name = cfg.inference.run_name or f"agent_{get_cool_name()}"
+    run_name = f"{cfg.inference.run_prefix}{run_name}{cfg.inference.run_suffix}"
     tags = [
         "agent",
         data_source.name.split("/")[1],
@@ -57,7 +58,6 @@ def main(cfg: RunAgentConfig):
         *tool_factory.short_names,  # all the tool names
     ]
     metadata = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-    run_name = f"Agent {cool_name}"
 
     # Agent code editor
     code_editor = AgentCodeEditor(
@@ -79,12 +79,7 @@ def main(cfg: RunAgentConfig):
 
     # Perform inference loop and save predictions
     with logging_redirect_tqdm():
-        inference_loop(
-            code_editor,
-            data_source,
-            output_path,
-            cfg.inference,
-        )
+        inference_loop(code_editor, data_source, output_path, cfg.inference, run_name)
     finish_wandb()
 
 

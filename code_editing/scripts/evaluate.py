@@ -6,10 +6,11 @@ import dotenv
 import hydra
 import omegaconf
 import pandas as pd
-import wandb
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from tqdm import tqdm
+
+import wandb
 
 dotenv.load_dotenv()
 
@@ -33,19 +34,33 @@ def main(cfg: RunEvaluationConfig):
     # Get the 'diff_true' column from the data source
     diff_true = df["diff_true"]
 
+    # W&B sugary stuff
+    model_name = df["model_name"].iloc[0] if "model_name" in df.columns else None
+    run_name = model_name or os.path.split(cfg.input_path)[-2]
+    tags = []
+    # If the model name is in the format <run_name>_hex, split it
+    if model_name[-9] == "_":
+        run_name = model_name[:-9]
+        tags.append(f"unique:{model_name[-8:]}")
+
     # Instantiate the extractor and data source
     extractor: CodeBaseExtractor = instantiate(cfg.extractor)
     data_source = instantiate(cfg.data_source, extractor=extractor)
 
     res = {}
     pbar = tqdm(cfg.metrics.items(), position=0, desc="Running metrics")
+    tags += cfg.metrics.keys()
 
     use_wandb = cfg.wandb.enable
     if use_wandb:
         config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-        wandb.init(project=cfg.wandb.project, job_type="evaluation", config=config)
-        name = os.path.split(cfg.input_path)[-2]
-        wandb.run.name = f"Eval {name}"
+        wandb.init(project=cfg.wandb.project, job_type="evaluation", config=config, tags=tags)
+        wandb.run.name = f"Eval {run_name}"
+        if model_name is not None:
+            try:
+                wandb.use_artifact(f"inference_results.{model_name}:latest")
+            except:
+                logging.warning(f"Failed to use the artifact inference_results.{model_name}:latest", exc_info=True)
 
     # Lock all repositories in the data source
     locks = data_source.all_locks()
@@ -74,6 +89,8 @@ def main(cfg: RunEvaluationConfig):
     hydra_output_path = os.path.join(HydraConfig.get().runtime.output_dir, "eval.json")
     with open(hydra_output_path, "w") as f:
         f.write(res_json)
+    if use_wandb:
+        wandb.log_artifact(hydra_output_path, name=f"evaluation_results.{model_name}", type="evaluation_results")
 
     if use_wandb:
         wandb.finish()

@@ -14,3 +14,6 @@ class InferenceConfig:
     wandb: WandbConfig = field(default_factory=WandbConfig)
     num_tries: int = 5
     skip_empty_diffs: bool = True
+    run_name: Optional[str] = None
+    run_suffix: str = ""
+    run_prefix: str = ""

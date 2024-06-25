@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, TypedDict
 
@@ -77,3 +78,6 @@ class GraphFactory(ABC):
         self._agent_executor_cfg = other._agent_executor_cfg
         self._llm = other._llm
         return self
+
+    def get_logger(self, run_overview_manager: RunOverviewManager):
+        return logging.getLogger(f"inference.{run_overview_manager.instance_id}.{self.name}")

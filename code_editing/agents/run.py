@@ -27,6 +27,7 @@ class RunOverviewManager:
         repo_path: str,
         data_path: str,
         context_providers: Dict[str, ContextProvider],
+        instance_id: str = "???",
     ):
         self.repo_path = repo_path
         self.data_path = data_path
@@ -34,6 +35,7 @@ class RunOverviewManager:
         self.metadata = {"repo_path": repo_path, "data_path": data_path, "context_providers": context_providers.keys()}
         self.tools_info = collections.defaultdict(dict)
         self.start_ms = wandb_utils.get_current_ms()
+        self.instance_id = instance_id
 
     def log_tool_use(self, tool_name, status: ToolUseStatus):
         status = status.value

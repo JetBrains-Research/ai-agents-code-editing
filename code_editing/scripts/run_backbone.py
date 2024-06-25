@@ -27,7 +27,8 @@ def main(cfg: RunBaselineConfig):
     output_path = init_output_path(backbone.name, cfg, data_source)
 
     # WandB initialization
-    run_name = f"Baseline {backbone.name}"
+    run_name = cfg.inference.run_name or f"baseline_{backbone.name}"
+    run_name = f"{cfg.inference.run_prefix}{run_name}{cfg.inference.run_suffix}"
     init_wandb(cfg, run_name)
 
     # Perform inference loop and save predictions
@@ -36,6 +37,7 @@ def main(cfg: RunBaselineConfig):
         data_source,
         output_path,
         cfg.inference,
+        run_name
     )
     finish_wandb()
 

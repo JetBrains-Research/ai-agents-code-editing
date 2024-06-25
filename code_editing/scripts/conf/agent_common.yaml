@@ -1,7 +1,14 @@
 defaults:
   - base_agent
   - data_source: swe_bench
-  - llm: gpt-3.5-turbo-16k
+  - llm: gpt-4o
   - backbone: openai-gpt-3.5-turbo
   - backbone/prompt: simple_agent
   - context: all
+
+inference:
+  checkpoint_iters: 10
+  end_at: 50
+  wandb:
+    enable: true
+  run_suffix: "-4o"

@@ -1,15 +1,18 @@
+import collections
 import json
 import logging
 import os
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import coolname
 import omegaconf
 import pandas as pd
-import wandb
 from hydra.core.hydra_config import HydraConfig
+from langchain_community.callbacks import get_openai_callback
 from tqdm import tqdm
 
+import wandb
 from code_editing.code_editor import CodeEditor
 from code_editing.configs.inference_config import InferenceConfig
 from code_editing.data_sources.base_source import CEDataSource
@@ -28,7 +31,10 @@ def inference_loop(
     data_source: CEDataSource,
     output_path: str,
     inference_config: InferenceConfig,
+    run_name: str,
 ):
+    unique_hex = uuid.uuid4().hex[:8]
+    model_name = run_name.replace(" ", "_").replace("/", "_").lower() + "_" + unique_hex
     hydra_output_dir = HydraConfig.get().runtime.output_dir
     """
     Perform inference loop over the dataset for code editing.
@@ -37,7 +43,7 @@ def inference_loop(
         raise ValueError("This script only supports HuggingFaceSimpleGitCEDataSource")
 
     # Initialize lists to store the true diffs, predicted diffs
-    df = pd.DataFrame(columns=["diff_pred", "diff_true", "repo", "base_hash", "message", "viewed_lines"])
+    df = pd.DataFrame(columns=["diff_pred", "diff_true", "repo", "base_hash", "message", "viewed_lines", "model_name"])
 
     start = inference_config.start_from
     end = inference_config.end_at or len(data_source)
@@ -48,13 +54,24 @@ def inference_loop(
     num_added = 0
 
     run_summary = {}
+    openai_stats = collections.defaultdict(float)
 
     def process_datapoint(i):
         repo_lock = data_source.get_lock(i)
-        with repo_lock:
+        with repo_lock, get_openai_callback() as cb:
             datapoints[i] = data_source[i]
             inp = data_source.data_to_input(datapoints[i])
-            return code_editor.generate_diff(inp)
+            instance_id = f"{data_source.name}_{i}"
+            inp["instance_id"] = instance_id
+            try:
+                return code_editor.generate_diff(inp)
+            finally:
+                openai_stats["total_tokens"] += cb.total_tokens
+                openai_stats["total_cost"] += cb.total_cost
+                openai_stats["successful_requests"] += cb.successful_requests
+                openai_stats["completion_tokens"] += cb.completion_tokens
+                openai_stats["projected_cost"] = openai_stats["total_cost"] * (end - start) / (num_added + 1)
+                wandb.log({"openai": openai_stats})
 
     with ThreadPoolExecutor(max_workers=inference_config.num_workers) as executor:
         queue = [(executor.submit(process_datapoint, i), i) for i in range(start, end)]
@@ -108,7 +125,15 @@ def inference_loop(
                     # log
                     wandb.log(run_summary)
                 # Add the result to the dataframe
-                df.loc[i - start] = [y_pred, data.diff_true, data.repo, data.base_hash, data.message, viewed_lines]
+                df.loc[i - start] = [
+                    y_pred,
+                    data.diff_true,
+                    data.repo,
+                    data.base_hash,
+                    data.message,
+                    viewed_lines,
+                    model_name,
+                ]
                 # Update the progress bar
                 num_added += 1
                 progress_bar.update(1)
@@ -130,6 +155,7 @@ def inference_loop(
     # Save the results to wandb
     if wandb.run is not None:
         wandb.log({"prediction": wandb.Table(dataframe=df)})
+        wandb.run.tags = wandb.run.tags + (f"unique:{unique_hex}",)
 
     # Return the prepared dataframe
     my_save_jsonl(df, output_path)
@@ -139,7 +165,6 @@ def inference_loop(
 
     # SWEBench specific
     if hasattr(data_source, "to_swebench_results"):
-        model_name = code_editor.run_name.replace(" ", "-").replace("/", "-").lower()
         swebench_results, instance_ids = data_source.to_swebench_results(df, model_name)
         # save predictions in SWEBench format
         swebench_output_path = os.path.join(hydra_output_dir, f"swebench_preds_{model_name}.json")
@@ -151,6 +176,9 @@ def inference_loop(
             f.write("\n".join(instance_ids))
         # log the paths
         logger.info(f"Saved the predictions in SWEBench format to {swebench_output_path}")
+
+    if wandb.run is not None:
+        wandb.log_artifact(hydra_output_dir, name=f"inference_results.{model_name}", type="inference_results")
     logger.info(f"Saved the results to {hydra_output_path}")
     return df
 

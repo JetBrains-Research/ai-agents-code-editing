@@ -45,8 +45,6 @@ class CEBackbone(ABC):
 
 
 class CodeEditor(ABC):
-    run_name = "base"
-
     @abstractmethod
     def generate_diff(self, req: CEInput) -> CEOutput:
         pass

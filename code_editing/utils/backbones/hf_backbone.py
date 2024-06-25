@@ -2,7 +2,6 @@ import logging
 from typing import Dict
 
 import torch
-import weave
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, GenerationConfig, set_seed
 
 from code_editing.code_editor import CEBackbone, CEInput, CEOutput
@@ -82,7 +81,6 @@ class HuggingFaceBackbone(CEBackbone):
         if not self._prompt:
             raise ValueError("Prompt is required for HuggingFace models.")
 
-        @weave.op(name="prompt")
         def get_inp(r):
             return self._prompt.hf(
                 r,
@@ -93,7 +91,6 @@ class HuggingFaceBackbone(CEBackbone):
         preprocessed_inputs = get_inp(req)
         encoding = self._tokenizer(preprocessed_inputs, return_tensors="pt").to(self._device)
 
-        @weave.op(name="generate")
         def get_resp(_):
             return self._model.generate(
                 **encoding,

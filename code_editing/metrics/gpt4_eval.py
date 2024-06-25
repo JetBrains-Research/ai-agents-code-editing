@@ -2,7 +2,6 @@ import logging
 import re
 from typing import Dict
 
-import wandb
 from openai import OpenAI
 
 from code_editing.metrics.base_metric import BaseSentenceMetric

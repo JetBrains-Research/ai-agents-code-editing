@@ -46,3 +46,7 @@ metrics:
   total_context:
     _target_: "code_editing.metrics.TotalContextMetric"
     add_sample_metrics: true
+
+wandb:
+  project: lca-code-editing
+  enable: true
