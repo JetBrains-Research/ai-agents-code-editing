@@ -1,9 +1,8 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from grazie.api.client.endpoints import GrazieApiGatewayUrls
 from grazie.api.client.gateway import AuthType
-from grazie.api.client.profiles import LLMProfile, Profile
 from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
@@ -19,12 +18,17 @@ class OpenAILLMConfigChat(ChatLLMConfig):
     model_name: str = "gpt-3.5-turbo"
 
 
+@dataclass
 class GrazieLLMConfig(ChatLLMConfig):
+    @dataclass
+    class LLMProfileConfig:
+        _target_: str = "grazie.api.client.profiles.Profile.get_by_name"
+        name: str = "openai-chat-gpt"
     _target_: str = "grazie_langchain_utils.language_models.grazie.ChatGrazie"
     grazie_jwt_token: str = os.environ.get("GRAZIE_JWT_TOKEN", MISSING)
     auth_type: str = AuthType.USER
     client_url: str = GrazieApiGatewayUrls.STAGING
-    profile: LLMProfile = Profile.OPENAI_CHAT_GPT
+    profile: LLMProfileConfig = field(default_factory=LLMProfileConfig)
 
 
 cs = ConfigStore.instance()
