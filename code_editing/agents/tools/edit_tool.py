@@ -45,7 +45,7 @@ class EditTool(CEBaseTool):
         # new_contents = resp["prediction"]
         # Save
         with open(file, "w") as f:
-            f.write("\n".join(lines[:start - 1] + [new_contents] + lines[end:]))
+            f.write("\n".join(lines[: start - 1] + [new_contents] + lines[end:]))
         # Reindex
         self.retrieval_helper.add_changed_file(file)
         # Return the new fragment

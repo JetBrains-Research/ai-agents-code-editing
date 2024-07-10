@@ -4,7 +4,8 @@ from code_editing.agents.tools.acr_tools import (
     ACRSearchCodeInFile,
     ACRSearchMethod,
     ACRSearchMethodInClass,
-    ACRSearchMethodInFile, ACRShowDefinition,
+    ACRSearchMethodInFile,
+    ACRShowDefinition,
 )
 from code_editing.agents.tools.aider_tool import RepoMapTool
 from code_editing.agents.tools.code_search_tool import CodeSearchTool
