@@ -1,6 +1,10 @@
 import collections
+import os
 from enum import Enum
 from typing import Dict, TypedDict
+
+import hydra
+from hydra.core.hydra_config import HydraConfig
 
 from code_editing.agents.context_providers.context_provider import ContextProvider
 from code_editing.utils import wandb_utils
@@ -54,3 +58,9 @@ class RunOverviewManager:
         if res is None:
             raise ValueError(f"Context provider {ctx_provider_name} not found")
         return res
+
+    def get_log_path(self) -> str:
+        base_path = HydraConfig.get().runtime.output_dir
+        log_path = os.path.join(base_path, "logs", f"run_{self.instance_id.replace('/', '_')}.log")
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        return log_path

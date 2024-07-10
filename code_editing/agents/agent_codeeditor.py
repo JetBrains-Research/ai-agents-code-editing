@@ -10,6 +10,7 @@ from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEInput, CEOutput, CodeEditor
 from code_editing.configs.agents.context_providers.context_config import ContextConfig
+from code_editing.utils.file_log import MyFileCallbackHandler
 from code_editing.utils.git_utils import get_head_diff_unsafe
 
 
@@ -72,6 +73,8 @@ class AgentCodeEditor(CodeEditor):
         # update runnable config
         runnable_config = self.runnable_config.copy()
         runnable_config["run_name"] = f"{runnable_config['run_name']}.{run_overview_manager.instance_id}"
+        runnable_config.setdefault("callbacks", [])
+        runnable_config["callbacks"].append(MyFileCallbackHandler(run_overview_manager.get_log_path()))
 
         # Invoke the graph
         return (app | RunnableLambda(to_ceoutput, name="Collect Diff")).invoke(
