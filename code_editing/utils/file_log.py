@@ -10,9 +10,7 @@ from langchain_core.utils.input import print_text
 class MyFileCallbackHandler(BaseCallbackHandler):
     """Callback Handler that writes to a file."""
 
-    def __init__(
-        self, filename: str, mode: str = "a", color: Optional[str] = None
-    ) -> None:
+    def __init__(self, filename: str, mode: str = "a", color: Optional[str] = None) -> None:
         """Initialize callback handler."""
         self.file = cast(TextIO, open(filename, mode, encoding="utf-8"))
         self.color = color
@@ -21,9 +19,7 @@ class MyFileCallbackHandler(BaseCallbackHandler):
         """Destructor to cleanup when done."""
         self.file.close()
 
-    def on_chain_start(
-        self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs: Any
-    ) -> None:
+    def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs: Any) -> None:
         """Print out that we are entering a chain."""
         class_name = serialized.get("name", serialized.get("id", ["<unknown>"])[-1])
         print_text(
@@ -41,9 +37,7 @@ class MyFileCallbackHandler(BaseCallbackHandler):
         outputs_str = pprint_dict(outputs)
         print_text(outputs_str, file=self.file, end="\n")
 
-    def on_agent_action(
-        self, action: AgentAction, color: Optional[str] = None, **kwargs: Any
-    ) -> Any:
+    def on_agent_action(self, action: AgentAction, color: Optional[str] = None, **kwargs: Any) -> Any:
         """Run on agent action."""
         print_text(action.log, color=color or self.color, file=self.file)
 
@@ -62,15 +56,11 @@ class MyFileCallbackHandler(BaseCallbackHandler):
         if llm_prefix is not None:
             print_text(f"\n{llm_prefix}", file=self.file)
 
-    def on_text(
-        self, text: str, color: Optional[str] = None, end: str = "", **kwargs: Any
-    ) -> None:
+    def on_text(self, text: str, color: Optional[str] = None, end: str = "", **kwargs: Any) -> None:
         """Run when agent ends."""
         print_text(text, color=color or self.color, end=end, file=self.file)
 
-    def on_agent_finish(
-        self, finish: AgentFinish, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def on_agent_finish(self, finish: AgentFinish, color: Optional[str] = None, **kwargs: Any) -> None:
         """Run on agent end."""
         print_text(finish.log, color=color or self.color, end="\n", file=self.file)
 
@@ -79,11 +69,11 @@ def pprint_dict(d, indent=0, step=2) -> str:
     res = ""
     if isinstance(d, dict):
         for key, value in d.items():
-            res += (' ' * indent + str(key) + ':') + '\n'
+            res += (" " * indent + str(key) + ":") + "\n"
             res += pprint_dict(value, indent + step)
     elif isinstance(d, list):
         for item in d:
             res += pprint_dict(item, indent + step)
     else:
-        res += (' ' * indent + str(d)) + '\n'
+        res += (" " * indent + str(d)) + "\n"
     return res
