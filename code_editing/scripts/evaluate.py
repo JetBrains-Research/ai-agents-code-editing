@@ -15,6 +15,7 @@ import wandb
 dotenv.load_dotenv()
 
 from code_editing.configs.evaluation_config import RunEvaluationConfig
+from code_editing.data_sources import SWEBenchDataSource
 from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.metrics.base_metric import BaseMetric
 
@@ -22,11 +23,28 @@ from code_editing.metrics.base_metric import BaseMetric
 @hydra.main(version_base=None, config_path="conf", config_name="evaluation")
 def main(cfg: RunEvaluationConfig):
     """This script evaluates a csv file with columns diff_true and diff_pred."""
+    # Instantiate the extractor and data source
+    extractor: CodeBaseExtractor = instantiate(cfg.extractor)
+    data_source = instantiate(cfg.data_source, extractor=extractor)
+
     # Read the input file specified by the user
     if cfg.input_path.endswith(".csv"):
         df = pd.read_csv(cfg.input_path)
     else:
         df = pd.read_json(cfg.input_path, lines=True)
+        # if SWE format, convert to the expected format
+        if "model_name_or_path" in df.columns and isinstance(data_source, SWEBenchDataSource):
+            # rename model_name_or_path to model_name
+            dataset_df = data_source._dataset.to_pandas()
+            # add diff_true, message, repo, base_hash from the dataset merged on instance_id
+            df = df.merge(dataset_df, left_on="instance_id", right_on="instance_id")
+            df["model_name"] = df["model_name_or_path"]
+            df["diff_pred"] = df["model_patch"]
+            df["diff_true"] = df["patch"]
+            df["message"] = df["problem_statement"]
+            df["base_hash"] = df["base_commit"]
+            df["viewed_lines"] = df["diff_true"].apply(lambda x: "{}")
+            df = df[["diff_pred", "diff_true", "repo", "base_hash", "message", "viewed_lines", "model_name"]]
 
     # Get the 'diff_pred' column from the dataframe, replace any NaN values with an empty string
     diff_pred = df["diff_pred"].fillna("")
@@ -39,13 +57,9 @@ def main(cfg: RunEvaluationConfig):
     run_name = model_name or os.path.split(cfg.input_path)[-2]
     tags = []
     # If the model name is in the format <run_name>_hex, split it
-    if model_name[-9] == "_":
+    if len(model_name) > 8 and model_name[-9] == "_":
         run_name = model_name[:-9]
         tags.append(f"unique:{model_name[-8:]}")
-
-    # Instantiate the extractor and data source
-    extractor: CodeBaseExtractor = instantiate(cfg.extractor)
-    data_source = instantiate(cfg.data_source, extractor=extractor)
 
     res = {}
     pbar = tqdm(cfg.metrics.items(), position=0, desc="Running metrics")

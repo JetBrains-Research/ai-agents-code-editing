@@ -10,7 +10,7 @@ def extract_patch(resp: str) -> Optional[str]:
     if resp.strip() == "":
         return ""
 
-    if resp.startswith("diff --git"):
+    if resp.strip().startswith("diff --git") or resp.strip().startswith("--- a/"):
         # If the response is a diff, return it as is
         return resp
 
