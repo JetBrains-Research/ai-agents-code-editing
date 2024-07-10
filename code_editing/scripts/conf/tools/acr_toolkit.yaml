@@ -5,3 +5,4 @@ defaults:
   - /tools@acr_search_method: acr_search_method
   - /tools@acr_search_code: acr_search_code
   - /tools@acr_search_code_in_file: acr_search_code_in_file
+  - /tools@acr_show_definition: acr_show_definition

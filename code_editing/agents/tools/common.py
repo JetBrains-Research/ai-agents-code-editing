@@ -21,6 +21,19 @@ def read_file(context, file, start_index):
     return contents, lines, start, end
 
 
+def read_file_lines(file, line_start, line_end, add_line_numbers=False):
+    lines = read_file_full(file).split("\n")
+    line_start = max(1, line_start)
+    line_end = min(len(lines), line_end)
+    res = ""
+    for i in range(line_start - 1, line_end):
+        if add_line_numbers:
+            res += f"{i + 1} {lines[i]}\n"
+        else:
+            res += f"{lines[i]}\n"
+    return res, line_start, line_end, lines
+
+
 def read_file_full(file) -> str:
     with open(file, "r", encoding="utf8", errors="ignore") as f:
         return f.read()

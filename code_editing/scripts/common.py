@@ -71,7 +71,8 @@ def inference_loop(
                 openai_stats["successful_requests"] += cb.successful_requests
                 openai_stats["completion_tokens"] += cb.completion_tokens
                 openai_stats["projected_cost"] = openai_stats["total_cost"] * (end - start) / (num_added + 1)
-                wandb.log({"openai": openai_stats})
+                if wandb.run is not None:
+                    wandb.log({"openai": openai_stats})
 
     with ThreadPoolExecutor(max_workers=inference_config.num_workers) as executor:
         queue = [(executor.submit(process_datapoint, i), i) for i in range(start, end)]

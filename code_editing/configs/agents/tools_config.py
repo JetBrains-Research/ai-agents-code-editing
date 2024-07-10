@@ -61,6 +61,16 @@ class ACRSearchCodeInFileConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRSearchCodeInFile"
 
 
+@dataclass
+class ACRShowDefinitionConfig(ToolConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.ACRShowDefinition"
+
+
+@dataclass
+class AiderRepoMapConfig(ToolConfig):
+    _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.RepoMapTool"
+
+
 # All tool options
 cs = ConfigStore.instance()
 cs.store(name="edit", group="tools", node=EditToolConfig)
@@ -74,3 +84,6 @@ cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodI
 cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
 cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
 cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)
+cs.store(name="acr_show_definition", group="tools", node=ACRShowDefinitionConfig)
+
+cs.store(name="repo_map", group="tools", node=AiderRepoMapConfig)

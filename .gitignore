@@ -245,6 +245,7 @@ pyrightconfig.json
 
 outputs/
 wandb/
+multirun/
 
 # JetBrains Cadence
 .cadence/

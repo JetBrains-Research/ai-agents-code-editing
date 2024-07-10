@@ -1,16 +1,14 @@
 from pydantic import BaseModel, Field
 
 from code_editing.agents.tools.base_tool import CEBaseTool
-from code_editing.agents.tools.common import my_format_fragment, parse_file, read_file
+from code_editing.agents.tools.common import parse_file, read_file_lines
 
 
 class ViewFileTool(CEBaseTool):
     class ViewFileToolInput(BaseModel):
         file_name: str = Field(description="File name to view", examples=["main.py", "test/benchmark/metrics.py"])
-        start_index: int = Field(description="Start index of the fragment to view", examples=[0, 100])
-        context: int = Field(
-            description="Number of lines (before and after) added to the fragment to be viewed", examples=[5, 10]
-        )
+        line_start_number: int = Field(description="Line start number to view", examples=[1, 100])
+        line_end_number: int = Field(description="Line end number to view", examples=[10, 120])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -19,15 +17,15 @@ class ViewFileTool(CEBaseTool):
             return
 
     name = "view-fragment"
-    description = """View a file from the code base. Useful to see the context of a index.
-    Inputs are the file name, the start index and the context size."""
+    description = """View a fragment of code based on the given line numbers. Useful to view the code base. 1-based
+    line numbers are used."""
     args_schema = ViewFileToolInput
 
-    def _run_tool(self, file_name: str, start_index: int, context: int):
-        start_index = int(start_index)
+    def _run_tool(self, file_name: str, line_start_number: int, line_end_number: int) -> str:
+        line_start_number, line_end_number = int(line_start_number), int(line_end_number)
         file = parse_file(file_name, self.repo_path)
-        contents, lines, start, end = read_file(context, file, start_index)
-        return my_format_fragment(source=file_name, start_index=start_index, page_content=contents)
+        contents, line_start, line_end, _ = read_file_lines(file, line_start_number, line_end_number, True)
+        return f"+++ {file_name}\n{contents}"
 
     @property
     def short_name(self) -> str:

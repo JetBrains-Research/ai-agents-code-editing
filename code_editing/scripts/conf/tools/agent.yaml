@@ -1,4 +1,6 @@
 defaults:
-  - /tools@code_search: code_search
+#  - /tools@code_search: code_search
+  - acr_toolkit
   - /tools@view_file: view_file
   - /tools@edit: edit
+  - /tools@repo_map: repo_map

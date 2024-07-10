@@ -26,7 +26,7 @@ class ToolFactory:
     @property
     def short_names(self) -> List[str]:
         """Short names detailing the tools in the factory. Used for logging and wandb run name."""
-        return [tool.short_name for tool in self.preview]
+        return [tool.short_name for tool in self.preview if tool.short_name is not None]
 
     @property
     def short_name(self) -> str:

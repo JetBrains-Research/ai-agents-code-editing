@@ -1,4 +1,4 @@
 defaults:
-  - base_agent
   - agent_common
-  - graph: self_reflection
+  - graph: agent_only
+  - tools: agent
