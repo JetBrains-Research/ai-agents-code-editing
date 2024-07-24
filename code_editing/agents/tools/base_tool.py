@@ -1,9 +1,10 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, Type, Union
 
 from langchain_core.tools import BaseTool, ToolException
 
+from code_editing.agents.context_providers.context_provider import ContextProvider
 from code_editing.agents.run import RunOverviewManager, ToolUseStatus
 
 
@@ -74,5 +75,5 @@ class CEBaseTool(BaseTool, ABC):
         """Short name of the tool. Used for logging and tracing"""
         return None
 
-    def get_ctx_provider(self, ctx_provider_name) -> Any:
+    def get_ctx_provider(self, ctx_provider_name: Union[str, Type[ContextProvider]]) -> ContextProvider:
         return self.run_overview_manager.get_ctx_provider(ctx_provider_name)

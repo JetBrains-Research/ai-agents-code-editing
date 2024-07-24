@@ -1,9 +1,8 @@
 import collections
 import os
 from enum import Enum
-from typing import Dict, TypedDict
+from typing import Dict, TypedDict, Union, Type
 
-import hydra
 from hydra.core.hydra_config import HydraConfig
 
 from code_editing.agents.context_providers.context_provider import ContextProvider
@@ -53,11 +52,20 @@ class RunOverviewManager:
             "duration_sec": (end_ms - self.start_ms) / 1000,
         }
 
-    def get_ctx_provider(self, ctx_provider_name) -> ContextProvider:
-        res = self.context_providers.get(ctx_provider_name, None)
-        if res is None:
-            raise ValueError(f"Context provider {ctx_provider_name} not found")
-        return res
+    def get_ctx_provider(self, ctx_provider_name: Union[str, Type[ContextProvider]]) -> ContextProvider:
+        if isinstance(ctx_provider_name, str):
+            res = self.context_providers.get(ctx_provider_name, None)
+            if res is None:
+                raise ValueError(f"Context provider {ctx_provider_name} not found")
+            return res
+        else:
+            # filter values by type
+            res = list(filter(lambda x: isinstance(x, ctx_provider_name), self.context_providers.values()))
+            if len(res) == 0:
+                raise ValueError(f"Context provider {ctx_provider_name} not found")
+            if len(res) > 1:
+                raise ValueError(f"Multiple context providers of type {ctx_provider_name} found")
+            return res[0]
 
     def get_log_path(self) -> str:
         base_path = HydraConfig.get().runtime.output_dir

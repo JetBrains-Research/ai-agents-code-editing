@@ -100,7 +100,7 @@ def inference_loop(
                     if "Empty prediction" in str(e):
                         logger.warning(f"Empty prediction for #{i} {row_info}")
                     else:
-                        logger.warning(f"Error in inference for ${i} {row_info}", exc_info=e)
+                        logger.warning(f"Error in inference for #{i} {row_info}", exc_info=e)
                     tries[i] += 1
                     if tries[i] < inference_config.num_tries:
                         queue.append((executor.submit(process_datapoint, i), i))
