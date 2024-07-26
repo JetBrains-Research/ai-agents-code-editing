@@ -46,6 +46,9 @@ metrics:
   total_context:
     _target_: "code_editing.metrics.TotalContextMetric"
     add_sample_metrics: true
+  swebench:
+    _target_: "code_editing.metrics.SWEBenchMetric"
+    max_workers: 32
 
 wandb:
   project: lca-code-editing

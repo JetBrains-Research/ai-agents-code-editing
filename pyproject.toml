@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Alexander Kovrigin <alexander.kovrigin@jetbrains.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "~3.10"
@@ -37,9 +38,7 @@ torch = "^2.0.0"
 transformers = "^4.32.0"
 accelerate = "^0.30.1"
 packaging = "~23.2"
-code-bert-score = "^0.4.1"
 coolname = "^2.2.0"
-evaluate = "^0.4.2"
 faiss-cpu = "^1.8.0"
 filelock = "^3.14.0"
 gitpython = "^3.1.43"
@@ -65,6 +64,10 @@ wandb = "^0.17.0"
 scikit-learn = "^1.5.0"
 scipy = "^1.13.1"
 
+[tool.poetry.group.eval.dependencies]
+code-bert-score = "^0.4.1"
+evaluate = "^0.4.2"
+swebench = "^2.0.12"
 
 [tool.poetry.group.aider.dependencies]
 grep-ast = "0.3.2"

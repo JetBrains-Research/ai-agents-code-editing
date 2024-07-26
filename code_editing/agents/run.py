@@ -1,7 +1,7 @@
 import collections
 import os
 from enum import Enum
-from typing import Dict, TypedDict, Union, Type
+from typing import Dict, Type, TypedDict, Union
 
 from hydra.core.hydra_config import HydraConfig
 

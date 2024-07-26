@@ -33,6 +33,7 @@ class HuggingFaceSimpleGitCEDataSource(CEDataSource):
         super().__init__(extractor, base_data_path)
         self._dataset = load_dataset(hub_name, config, split=split, cache_dir=cache_dir)
         self.name = hub_name
+        self.split = split
         self._hub_name = hub_name
 
         # Initialize the git repositories

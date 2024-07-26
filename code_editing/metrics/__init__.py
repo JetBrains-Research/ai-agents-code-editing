@@ -13,6 +13,7 @@ from .localization import (
     PyScopeViewLocalizationMetric,
     TotalContextMetric,
 )
+from .swe_bench_metric import SWEBenchMetric
 
 __all__ = [
     "CodeBertScoreMetric",
@@ -32,4 +33,5 @@ __all__ = [
     "PyScopeViewLocalizationMetric",
     "TotalContextMetric",
     "GPT4ComparisonMetric",
+    "SWEBenchMetric",
 ]
