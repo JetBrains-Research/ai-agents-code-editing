@@ -1,0 +1,5 @@
+defaults:
+  - aider
+
+inference:
+  run_name: repomap-aider

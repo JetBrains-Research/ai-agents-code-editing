@@ -1,0 +1,6 @@
+defaults:
+  - agent
+  - _self_
+
+inference:
+  run_name: bm25-agent-tc

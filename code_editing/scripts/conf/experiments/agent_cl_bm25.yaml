@@ -1,0 +1,6 @@
+defaults:
+  - agent_cl
+  - _self_
+
+inference:
+  run_name: bm25-agent-cl

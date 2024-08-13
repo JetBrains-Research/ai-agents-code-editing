@@ -1,0 +1,5 @@
+defaults:
+  - baseline
+
+inference:
+  run_name: bm25-baseline

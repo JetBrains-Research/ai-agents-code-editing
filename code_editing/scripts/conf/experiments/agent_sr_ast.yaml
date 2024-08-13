@@ -1,0 +1,7 @@
+defaults:
+  - agent_sr
+  - override tools: acr_toolkit
+  - _self_
+
+inference:
+  run_name: ast-agent-sr

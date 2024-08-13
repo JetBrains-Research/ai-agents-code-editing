@@ -1,0 +1,10 @@
+defaults:
+  - end_to_end
+  - _self_
+
+inference:
+  run_name: ast-e2e
+
+graph:
+  agent_prompt:
+    owner_repo_commit: jbr-code-editing/agent-repo-map

@@ -1,0 +1,6 @@
+defaults:
+  - agent_sr
+  - _self_
+
+inference:
+  run_name: bm25-agent-sr
