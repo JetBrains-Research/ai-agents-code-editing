@@ -2,23 +2,18 @@ from pydantic import BaseModel, Field
 
 from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.tools.base_tool import CEBaseTool
-from code_editing.agents.tools.common import parse_file, read_file_lines
+from code_editing.agents.tools.common import parse_file, read_file_lines, read_file_full
 from code_editing.code_editor import CEBackbone
 
 
 class EditTool(CEBaseTool):
     class EditToolInput(BaseModel):
         file_name: str = Field(description="File name to edit", examples=["main.py", "test/benchmark/metrics.py"])
-        line_start_number: int = Field(description="Line start number to view", examples=[1, 100])
-        line_end_number: int = Field(description="Line end number to view", examples=[10, 120])
-        new_contents: str = Field(description="New contents of the file", examples=["def new_function():\n    pass\n"])
+        to_replace: str = Field(description="The code to replace", examples=["def old_function():\n    pass\n"])
+        new_code: str = Field(description="The new code", examples=["def new_function():\n    pass\n"])
 
     name = "edit-fragment"
-    # description = """Edit a fragment of code based on the given instruction.
-    # Useful to make changes to the code base. Inputs are the file name, the start index, the instruction and the context size.
-    # The instruction should be a prompt for the editing LLM."""
-    description = """Edit a fragment of code. Inputs are the file name, the start index, and the new code for the
-    fragment."""
+    description = """Edit a fragment of code. Inputs are the old code to replace and the new code to replace it with."""
     args_schema = EditToolInput
 
     def __init__(self, backbone: CEBackbone = None, **kwargs):
@@ -36,21 +31,26 @@ class EditTool(CEBaseTool):
         # noinspection PyTypeChecker
         self.retrieval_helper = self.run_overview_manager.get_ctx_provider("retrieval_helper")
 
-    def _run_tool(self, file_name: str, line_start_number: int, line_end_number: int, new_contents: str) -> str:
-        line_start_number, line_end_number = int(line_start_number), int(line_end_number)
+    def _run_tool(self, file_name: str, to_replace: str, new_code: str) -> str:
         file = parse_file(file_name, self.repo_path)
-        contents, start, end, lines = read_file_lines(file, line_start_number, line_end_number)
-        # Send to the editing LLM
-        # resp = self.backbone.generate_diff({"instruction": instruction, "code_base": {file_name: contents}})
-        # new_contents = resp["prediction"]
+        # Read the file
+        contents = read_file_full(file)
+        # Find the fragment to replace
+        start = contents.find(to_replace)
+        start_line = contents.count("\n", 0, start)
+        if start == -1:
+            return "The code to replace was not found in the file."
+        end = start + len(to_replace)
+        # Replace the fragment
+        new_contents = contents[:start] + new_code + contents[end:]
         # Save
         with open(file, "w") as f:
-            f.write("\n".join(lines[: start - 1] + [new_contents] + lines[end:]))
+            f.write(new_contents)
         # Reindex
         self.retrieval_helper.add_changed_file(file)
         # Return the new fragment
-        # result = my_format_fragment(source=file_name, start_index=start_index, page_content=new_contents)
-        new_state, *_ = read_file_lines(file, start - 5, start + new_contents.count("\n") + 5, True)
+        new_state = read_file_lines(file, start_line - 5, start_line + new_code.count("\n") + 1 + 5)[0]
+
         return "Code has been updated. Here is the context around the change:\n" + new_state
 
     @property
