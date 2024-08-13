@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.tools.base_tool import CEBaseTool
-from code_editing.agents.tools.common import parse_file, read_file_lines, read_file_full
+from code_editing.agents.tools.common import parse_file, read_file_full, read_file_lines
 from code_editing.code_editor import CEBackbone
 
 
