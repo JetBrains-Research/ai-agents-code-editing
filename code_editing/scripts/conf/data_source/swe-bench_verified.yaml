@@ -1,0 +1,6 @@
+defaults:
+  - swe_bench
+  - _self_
+
+hub_name: "princeton-nlp/SWE-bench_Verified"
+split_name: "test"

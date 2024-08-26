@@ -1,6 +1,6 @@
 defaults:
   - base_agent
-  - data_source: swe_bench
+  - data_source: swe-bench_lite
   - llm: gpt-4o
   - backbone: openai-gpt-3.5-turbo
   - backbone/prompt: simple_agent
