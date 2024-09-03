@@ -63,14 +63,18 @@ def inference_loop(
             inp = data_source.data_to_input(datapoints[i])
             instance_id = f"{data_source.name}_{i}"
             inp["instance_id"] = instance_id
+            inp["raw_data"] = data_source._dataset[i]
             try:
                 return code_editor.generate_diff(inp)
             finally:
+                if cb.total_cost == 0:
+                    logger.warning(f"OpenAI cost is 0 for {instance_id}")
                 openai_stats["total_tokens"] += cb.total_tokens
                 openai_stats["total_cost"] += cb.total_cost
                 openai_stats["successful_requests"] += cb.successful_requests
                 openai_stats["completion_tokens"] += cb.completion_tokens
                 openai_stats["projected_cost"] = openai_stats["total_cost"] * (end - start) / (num_added + 1)
+                openai_stats["average_cost"] = openai_stats["total_cost"] / (num_added + 1)
                 if wandb.run is not None:
                     wandb.log({"openai": openai_stats})
 

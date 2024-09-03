@@ -50,6 +50,7 @@ class AgentCodeEditor(CodeEditor):
             **generation_kwargs,
             context_providers=context_providers,
             instance_id=req.get("instance_id", None),
+            raw_data=req.get("raw_data", None),
         )
 
         # Tools available to the agent

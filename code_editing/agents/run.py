@@ -31,11 +31,21 @@ class RunOverviewManager:
         data_path: str,
         context_providers: Dict[str, ContextProvider],
         instance_id: str = "???",
+        raw_data: Dict = None,
     ):
         self.repo_path = repo_path
         self.data_path = data_path
+        self.repo = repo_path.split("/")[-1].replace("__", "/")
         self.context_providers = context_providers
-        self.metadata = {"repo_path": repo_path, "data_path": data_path, "context_providers": context_providers.keys()}
+        self.raw_data = raw_data or {}
+        self.metadata = {
+            "repo_path": repo_path,
+            "data_path": data_path,
+            "context_providers": context_providers.keys(),
+            "repo": self.repo,
+            "instance_id": instance_id,
+            "raw_data": raw_data,
+        }
         self.tools_info = collections.defaultdict(dict)
         self.start_ms = wandb_utils.get_current_ms()
         self.instance_id = instance_id
