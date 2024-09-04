@@ -28,10 +28,15 @@ class HuggingFaceSimpleGitCEDataSource(CEDataSource):
         config: Optional[str] = None,
         split: Optional[str] = None,
         cache_dir: Optional[str] = None,
+        shuffle_seed: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(extractor, base_data_path)
         self._dataset = load_dataset(hub_name, config, split=split, cache_dir=cache_dir)
+
+        if shuffle_seed is not None:
+            self._dataset = self._dataset.shuffle(shuffle_seed)
+
         self.name = hub_name
         self.split = split
         self._hub_name = hub_name

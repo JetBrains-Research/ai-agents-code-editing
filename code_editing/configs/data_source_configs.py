@@ -15,6 +15,7 @@ class DataSourceConfig:
         "CE_DATA_PATH", MISSING
     )  # Directory with dataset repositories. Load using `load_data/load_data_from_hf.py`
     cache_dir: Optional[str] = None
+    shuffle_seed: Optional[int] = None
 
 
 @dataclass
