@@ -17,8 +17,9 @@ class SWEBenchMetric(BaseMetric):
     This class implements the pass rate metric using the SWE-Bench evaluation harness.
     """
 
-    def __init__(self, data_source: CEDataSource, max_workers: int = 12, **kwargs):
+    def __init__(self, data_source: CEDataSource, max_workers: int = 12, cache_level: str = "none", **kwargs):
         self.max_workers = max_workers
+        self.cache_level = cache_level
 
         if not isinstance(data_source, SWEBenchDataSource):
             raise ValueError("SWEBench pass rate calculations can only be made with SWEBenchDataSource")
@@ -52,6 +53,8 @@ class SWEBenchMetric(BaseMetric):
             str(self.max_workers),
             "--run_id",
             unique_hex,
+            "--cache_level",
+            str(self.cache_level),
         ]
 
         # run the evaluation harness
