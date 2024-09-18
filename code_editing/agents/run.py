@@ -1,7 +1,7 @@
 import collections
 import os
 from enum import Enum
-from typing import Dict, Type, TypedDict, Union
+from typing import Dict, Type, TypedDict, Union, TypeVar
 
 from hydra.core.hydra_config import HydraConfig
 
@@ -62,7 +62,9 @@ class RunOverviewManager:
             "duration_sec": (end_ms - self.start_ms) / 1000,
         }
 
-    def get_ctx_provider(self, ctx_provider_name: Union[str, Type[ContextProvider]]) -> ContextProvider:
+    T = TypeVar("T", bound=ContextProvider)
+
+    def get_ctx_provider(self, ctx_provider_name: Union[str, Type[T]]) -> T:
         if isinstance(ctx_provider_name, str):
             res = self.context_providers.get(ctx_provider_name, None)
             if res is None:
