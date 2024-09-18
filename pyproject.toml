@@ -1,17 +1,15 @@
 [tool.poetry]
 name = "ai-agents-code-editing"
-version = "0.1.0"
+version = "0.1.4"
 description = ""
 authors = ["Alexander Kovrigin <alexander.kovrigin@jetbrains.com>"]
 readme = "README.md"
-package-mode = false
+packages = [
+    { include = "code_editing" }
+]
 
 [tool.poetry.dependencies]
 python = "~3.10"
-black = {extras = ["jupyter"], version = "^24.4.2"}
-isort = "^5.12.0"
-mypy = "^1.5.0"
-jupyter = "^1.0.0"
 pandas = "^2.0.3"
 matplotlib = "^3.7.2"
 seaborn = "^0.13.2"
@@ -22,7 +20,6 @@ self = "^2020.12.3"
 pydriller = "^2.5"
 pyyaml = "^6.0.1"
 types-pyyaml = "^6.0.12.11"
-pytest = "^8.2.1"
 langdetect = "^1.0.9"
 chardet = "^5.2.0"
 omegaconf = "^2.3.0"
@@ -51,7 +48,7 @@ langchain-community = "^0.2.1"
 langchain-core = "^0.2.1"
 langchain-openai = "^0.1.9"
 langchainhub = "^0.1.16"
-langgraph = "^0.2.18"
+langgraph = "^0.2.19"
 langsmith = "^0.1.63"
 openai = "^1.30.4"
 optimum = "^1.19.2"
@@ -63,17 +60,22 @@ tqdm = "^4.66.4"
 wandb = "^0.17.0"
 scikit-learn = "^1.5.0"
 scipy = "^1.13.1"
+grep-ast = "0.3.2"
+tree-sitter = "0.21.3"
+tree-sitter-languages = "1.10.2"
+diskcache = "5.6.3"
+
+[tool.poetry.dev-dependencies]
+black = {extras = ["jupyter"], version = "^24.4.2"}
+isort = "^5.12.0"
+mypy = "^1.5.0"
+jupyter = "^1.0.0"
+pytest = "^8.2.1"
 
 [tool.poetry.group.eval.dependencies]
 code-bert-score = "^0.4.1"
 evaluate = "^0.4.2"
 swebench = "^2.0.12"
-
-[tool.poetry.group.aider.dependencies]
-grep-ast = "0.3.2"
-tree-sitter = "0.21.3"
-tree-sitter-languages = "1.10.2"
-diskcache = "5.6.3"
 
 [build-system]
 requires = ["poetry-core"]
