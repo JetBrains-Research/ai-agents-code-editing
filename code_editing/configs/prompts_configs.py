@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -39,10 +38,9 @@ class SimpleAgentPromptConfig(PromptConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.prompts.SimpleAgentPrompt"
 
 
-cs = ConfigStore.instance()
-# all available options for the prompt
-cs.store(name="zeroshot", group="backbone/prompt", node=ZeroShotPromptConfig)
-cs.store(name="fewshot", group="backbone/prompt", node=FewShotPromptConfig)
-cs.store(name="fewshot2", group="backbone/prompt", node=FewShotPrompt2Config)
-cs.store(name="code_fragment", group="backbone/prompt", node=CodeFragmentPromptConfig)
-cs.store(name="simple_agent", group="backbone/prompt", node=SimpleAgentPromptConfig)
+def setup_prompt_config(cs):
+    cs.store(name="zeroshot", group="backbone/prompt", node=ZeroShotPromptConfig)
+    cs.store(name="fewshot", group="backbone/prompt", node=FewShotPromptConfig)
+    cs.store(name="fewshot2", group="backbone/prompt", node=FewShotPrompt2Config)
+    cs.store(name="code_fragment", group="backbone/prompt", node=CodeFragmentPromptConfig)
+    cs.store(name="simple_agent", group="backbone/prompt", node=SimpleAgentPromptConfig)

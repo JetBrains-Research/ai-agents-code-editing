@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from code_editing.configs.backbones_configs import BackboneConfig
-from code_editing.configs.data_source_configs import DataSourceConfig
-from code_editing.configs.extractor_config import ExtractorConfig
-from code_editing.configs.inference_config import InferenceConfig
+from code_editing.configs.backbones_configs import BackboneConfig, setup_backbones_config
+from code_editing.configs.data_source_configs import DataSourceConfig, setup_data_source_config
+from code_editing.configs.extractor_config import ExtractorConfig, setup_extractor_config
+from code_editing.configs.inference_config import InferenceConfig, setup_inference_config
 from code_editing.configs.preprocessor_config import PreprocessorConfig, TruncationPreprocessorConfig
 
 
@@ -19,7 +18,11 @@ class RunBaselineConfig:
     inference: InferenceConfig = field(default_factory=InferenceConfig)
 
 
-cs = ConfigStore.instance()
-cs.store(name="base_baseline", node=RunBaselineConfig)
-# all available options for the preprocessor
-cs.store(name="truncate", group="preprocessor", node=TruncationPreprocessorConfig)
+def setup_baseline_config(cs):
+    setup_backbones_config(cs)
+    setup_data_source_config(cs)
+    setup_extractor_config(cs)
+    setup_inference_config(cs)
+
+    cs.store(name="base_baseline", node=RunBaselineConfig)
+    cs.store(name="truncate", group="preprocessor", node=TruncationPreprocessorConfig)

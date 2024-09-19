@@ -3,6 +3,7 @@ from typing import Any, Callable
 import dotenv
 import hydra
 import omegaconf
+from hydra.core.config_store import ConfigStore
 from hydra.utils import instantiate
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.runnables import RunnableConfig
@@ -15,7 +16,7 @@ dotenv.load_dotenv()
 from code_editing.agents.agent_codeeditor import AgentCodeEditor
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
-from code_editing.configs.agents.agent_config import RunAgentConfig
+from code_editing.configs.agents.agent_config import RunAgentConfig, setup_agent_config
 from code_editing.data_sources.base_source import CEDataSource
 from code_editing.data_sources.hf_source import HuggingFaceSimpleGitCEDataSource
 from code_editing.scripts.common import finish_wandb, get_cool_name, inference_loop, init_output_path, init_wandb
@@ -76,4 +77,5 @@ def main(cfg: RunAgentConfig):
 
 
 if __name__ == "__main__":
+    setup_agent_config(ConfigStore.instance())
     main()

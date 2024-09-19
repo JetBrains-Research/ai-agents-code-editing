@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -40,9 +39,8 @@ class SWEBenchDataSourceConfig(DataSourceConfig):
     split_name: str = "test"
 
 
-cs = ConfigStore.instance()
-# all available options for the data source
-cs.store(name="lca_code_editing", group="data_source", node=LCACodeEditingDataSourceConfig)
-cs.store(name="ci_fix_python", group="data_source", node=CIFixPythonDataSourceConfig)
-cs.store(name="lca_bug_localization", group="data_source", node=LCABugLocalizationDataSourceConfig)
-cs.store(name="swe_bench", group="data_source", node=SWEBenchDataSourceConfig)
+def setup_data_source_config(cs):
+    cs.store(name="lca_code_editing", group="data_source", node=LCACodeEditingDataSourceConfig)
+    cs.store(name="ci_fix_python", group="data_source", node=CIFixPythonDataSourceConfig)
+    cs.store(name="lca_bug_localization", group="data_source", node=LCABugLocalizationDataSourceConfig)
+    cs.store(name="swe_bench", group="data_source", node=SWEBenchDataSourceConfig)

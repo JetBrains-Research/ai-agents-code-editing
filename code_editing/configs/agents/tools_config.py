@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -71,19 +70,19 @@ class AiderRepoMapConfig(ToolConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.tools.RepoMapTool"
 
 
-# All tool options
-cs = ConfigStore.instance()
-cs.store(name="edit", group="tools", node=EditToolConfig)
-cs.store(name="view_file", group="tools", node=ViewFileToolConfig)
-cs.store(name="code_search", group="tools", node=CodeSearchToolConfig)
+def setup_tools_config(cs):
+    # All tool options
+    cs.store(name="edit", group="tools", node=EditToolConfig)
+    cs.store(name="view_file", group="tools", node=ViewFileToolConfig)
+    cs.store(name="code_search", group="tools", node=CodeSearchToolConfig)
 
-# All ACR tool options
-cs.store(name="acr_search_class", group="tools", node=ACRSearchClassConfig)
-cs.store(name="acr_search_method_in_file", group="tools", node=ACRSearchMethodInFileConfig)
-cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodInClassConfig)
-cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
-cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
-cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)
-cs.store(name="acr_show_definition", group="tools", node=ACRShowDefinitionConfig)
+    # All ACR tool options
+    cs.store(name="acr_search_class", group="tools", node=ACRSearchClassConfig)
+    cs.store(name="acr_search_method_in_file", group="tools", node=ACRSearchMethodInFileConfig)
+    cs.store(name="acr_search_method_in_class", group="tools", node=ACRSearchMethodInClassConfig)
+    cs.store(name="acr_search_method", group="tools", node=ACRSearchMethodConfig)
+    cs.store(name="acr_search_code", group="tools", node=ACRSearchCodeConfig)
+    cs.store(name="acr_search_code_in_file", group="tools", node=ACRSearchCodeInFileConfig)
+    cs.store(name="acr_show_definition", group="tools", node=ACRShowDefinitionConfig)
 
-cs.store(name="repo_map", group="tools", node=AiderRepoMapConfig)
+    cs.store(name="repo_map", group="tools", node=AiderRepoMapConfig)

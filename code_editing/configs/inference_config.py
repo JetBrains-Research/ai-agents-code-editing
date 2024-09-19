@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from code_editing.configs.wandb_config import WandbConfig
+from code_editing.configs.wandb_config import WandbConfig, setup_wandb_config
 
 
 @dataclass
@@ -17,3 +17,7 @@ class InferenceConfig:
     run_name: Optional[str] = None
     run_suffix: str = ""
     run_prefix: str = ""
+
+
+def setup_inference_config(cs):
+    setup_wandb_config(cs)

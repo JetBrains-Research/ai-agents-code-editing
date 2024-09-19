@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from code_editing.configs.data_source_configs import DataSourceConfig
-from code_editing.configs.extractor_config import ExtractorConfig
-from code_editing.configs.wandb_config import WandbConfig
+from code_editing.configs.data_source_configs import DataSourceConfig, setup_data_source_config
+from code_editing.configs.extractor_config import ExtractorConfig, setup_extractor_config
+from code_editing.configs.wandb_config import WandbConfig, setup_wandb_config
 
 
 @dataclass
@@ -18,5 +17,9 @@ class RunEvaluationConfig:
     extractor: ExtractorConfig = field(default_factory=ExtractorConfig)
 
 
-cs = ConfigStore.instance()
-cs.store(name="base_eval", node=RunEvaluationConfig)
+def setup_evaluation_config(cs):
+    setup_data_source_config(cs)
+    setup_wandb_config(cs)
+    setup_extractor_config(cs)
+
+    cs.store(name="base_eval", node=RunEvaluationConfig)

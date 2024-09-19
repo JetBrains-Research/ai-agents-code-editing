@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -21,7 +20,6 @@ class CodeFragmentExtractorConfig(ExtractorConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.data_sources.CodeFragmentExtractor"
 
 
-cs = ConfigStore.instance()
-# all available options for the extractor
-cs.store(name="full_file", group="extractor", node=FullFileExtractorConfig)
-cs.store(name="code_fragment", group="extractor", node=CodeFragmentExtractorConfig)
+def setup_extractor_config(cs):
+    cs.store(name="full_file", group="extractor", node=FullFileExtractorConfig)
+    cs.store(name="code_fragment", group="extractor", node=CodeFragmentExtractorConfig)

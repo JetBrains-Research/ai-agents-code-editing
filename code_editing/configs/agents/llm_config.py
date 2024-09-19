@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 
@@ -28,7 +27,7 @@ class HuggingFaceChatLLMConfig(ChatLLMConfig):
     llm: HuggingFaceLLMConfig = field(default_factory=HuggingFaceLLMConfig)
 
 
-cs = ConfigStore.instance()
-cs.store(name="openai", group="llm", node=OpenAILLMConfigChat)
-cs.store(name="base_hf", group="llm", node=HuggingFaceChatLLMConfig)
-cs.store(name="base_hf", group="llm/llm", node=HuggingFaceLLMConfig)
+def setup_llm_config(cs):
+    cs.store(name="openai", group="llm", node=OpenAILLMConfigChat)
+    cs.store(name="base_hf", group="llm", node=HuggingFaceChatLLMConfig)
+    cs.store(name="base_hf", group="llm/llm", node=HuggingFaceLLMConfig)

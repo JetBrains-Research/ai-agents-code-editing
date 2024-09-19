@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from hydra.core.config_store import ConfigStore
-
 from code_editing.configs.agents import GraphConfig
 from code_editing.configs.agents.user_prompt_config import UserPromptConfig, default_user_prompt
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -58,13 +56,13 @@ class AiderRetrievalConfig(ContextCollectorsConfig):
     select_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/repomap-search"))
 
 
-cs = ConfigStore.instance()
-cs.store(name="as_is_retrieval", group="graph/context_collector", node=AsIsRetrievalConfig)
-cs.store(name="llm_retrieval", group="graph/context_collector", node=LLMRetrievalConfig)
-cs.store(name="llm_cycle_retrieval", group="graph/context_collector", node=LLMCycleRetrievalConfig)
-cs.store(name="llm_fixed_ctx_retrieval", group="graph/context_collector", node=LLMFixedCtxRetrievalConfig)
+def setup_context_collectors_config(cs):
+    cs.store(name="as_is_retrieval", group="graph/context_collector", node=AsIsRetrievalConfig)
+    cs.store(name="llm_retrieval", group="graph/context_collector", node=LLMRetrievalConfig)
+    cs.store(name="llm_cycle_retrieval", group="graph/context_collector", node=LLMCycleRetrievalConfig)
+    cs.store(name="llm_fixed_ctx_retrieval", group="graph/context_collector", node=LLMFixedCtxRetrievalConfig)
 
-cs.store(name="acr", group="graph/context_collector", node=ACRRetrievalConfig)
-cs.store(name="my_acr", group="graph/context_collector", node=MyACRRetrievalConfig)
+    cs.store(name="acr", group="graph/context_collector", node=ACRRetrievalConfig)
+    cs.store(name="my_acr", group="graph/context_collector", node=MyACRRetrievalConfig)
 
-cs.store(name="aider", group="graph/context_collector", node=AiderRetrievalConfig)
+    cs.store(name="aider", group="graph/context_collector", node=AiderRetrievalConfig)

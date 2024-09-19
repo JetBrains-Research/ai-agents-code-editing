@@ -7,13 +7,14 @@ import hydra
 import omegaconf
 import pandas as pd
 import wandb
+from hydra.core.config_store import ConfigStore
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from tqdm import tqdm
 
 dotenv.load_dotenv()
 
-from code_editing.configs.evaluation_config import RunEvaluationConfig
+from code_editing.configs.evaluation_config import RunEvaluationConfig, setup_evaluation_config
 from code_editing.data_sources import SWEBenchDataSource
 from code_editing.data_sources.extract_code_base import CodeBaseExtractor
 from code_editing.metrics.base_metric import BaseMetric
@@ -110,4 +111,5 @@ def main(cfg: RunEvaluationConfig):
 
 
 if __name__ == "__main__":
+    setup_evaluation_config(ConfigStore.instance())
     main()

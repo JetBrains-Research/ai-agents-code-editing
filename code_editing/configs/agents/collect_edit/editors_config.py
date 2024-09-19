@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
-
 from code_editing.configs.agents import GraphConfig
 from code_editing.configs.agents.user_prompt_config import UserPromptConfig, default_user_prompt
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
@@ -18,5 +16,5 @@ class SimpleEditorConfig(EditorConfig):
     edit_prompt: UserPromptConfig = field(default_factory=default_user_prompt("jbr-code-editing/edit"))
 
 
-cs = ConfigStore.instance()
-cs.store(name="simple_editor", group="graph/editor", node=SimpleEditorConfig)
+def setup_editor_config(cs):
+    cs.store(name="simple_editor", group="graph/editor", node=SimpleEditorConfig)

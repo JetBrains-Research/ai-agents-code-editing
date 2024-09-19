@@ -1,11 +1,13 @@
 from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.agents import GraphConfig
-from code_editing.configs.agents.collect_edit.context_collectors_config import ContextCollectorsConfig
-from code_editing.configs.agents.collect_edit.editors_config import EditorConfig
+from code_editing.configs.agents.collect_edit.context_collectors_config import (
+    ContextCollectorsConfig,
+    setup_context_collectors_config,
+)
+from code_editing.configs.agents.collect_edit.editors_config import EditorConfig, setup_editor_config
 from code_editing.configs.agents.user_prompt_config import UserPromptConfig, default_user_prompt
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
 
@@ -34,7 +36,10 @@ class CollectEditConfig(GraphConfig):
     only_collect: bool = False
 
 
-cs = ConfigStore.instance()
-cs.store(name="agent_only", group="graph", node=AgentOnlyConfig)
-cs.store(name="self_reflection", group="graph", node=SelfReflectionConfig)
-cs.store(name="collect_edit", group="graph", node=CollectEditConfig)
+def setup_graph_config(cs):
+    setup_context_collectors_config(cs)
+    setup_editor_config(cs)
+
+    cs.store(name="agent_only", group="graph", node=AgentOnlyConfig)
+    cs.store(name="self_reflection", group="graph", node=SelfReflectionConfig)
+    cs.store(name="collect_edit", group="graph", node=CollectEditConfig)

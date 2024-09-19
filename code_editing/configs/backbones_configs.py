@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 from transformers import BitsAndBytesConfig
 
-from code_editing.configs.prompts_configs import PromptConfig
+from code_editing.configs.prompts_configs import PromptConfig, setup_prompt_config
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
 
 
@@ -88,8 +87,9 @@ class OpenAIBackboneConfig(BackboneConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.utils.backbones.OpenAIBackbone"
 
 
-cs = ConfigStore.instance()
-# all available options for the backbone
-cs.store(name="base_hf", group="backbone", node=HFBackboneConfig)
-cs.store(name="dummy", group="backbone", node=DummyBackboneConfig)
-cs.store(name="base_openai", group="backbone", node=OpenAIBackboneConfig)
+def setup_backbones_config(cs):
+    setup_prompt_config(cs)
+
+    cs.store(name="base_hf", group="backbone", node=HFBackboneConfig)
+    cs.store(name="dummy", group="backbone", node=DummyBackboneConfig)
+    cs.store(name="base_openai", group="backbone", node=OpenAIBackboneConfig)

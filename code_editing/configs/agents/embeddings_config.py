@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 
@@ -22,6 +21,6 @@ class HuggingFaceEmbeddingsConfig(EmbeddingsConfig):
     model_kwargs: dict = field(default_factory=dict)
 
 
-cs = ConfigStore.instance()
-cs.store(name="base_openai", group="retrieval/embeddings", node=OpenAIEmbeddingsConfig)
-cs.store(name="base_hf", group="retrieval/embeddings", node=HuggingFaceEmbeddingsConfig)
+def setup_embeddings_config(cs):
+    cs.store(name="base_openai", group="retrieval/embeddings", node=OpenAIEmbeddingsConfig)
+    cs.store(name="base_hf", group="retrieval/embeddings", node=HuggingFaceEmbeddingsConfig)

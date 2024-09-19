@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from code_editing.configs.agents.context_providers.loader_config import LoaderConfig
@@ -42,9 +41,9 @@ class AiderRepoMapConfig(ContextConfig):
     _target_: str = f"{CE_CLASSES_ROOT_PKG}.agents.context_providers.aider.AiderRepoMap"
 
 
-cs = ConfigStore.instance()
-cs.store(name="context", node=ContextConfig)
-cs.store(name="acr_search", group="context", node=ACRSearchManagerConfig)
-cs.store(name="faiss", group="context", node=FaissRetrievalConfig)
-cs.store(name="bm25", group="context", node=BM25RetrievalConfig)
-cs.store(name="aider", group="context", node=AiderRepoMapConfig)
+def setup_context_config(cs):
+    cs.store(name="context", node=ContextConfig)
+    cs.store(name="acr_search", group="context", node=ACRSearchManagerConfig)
+    cs.store(name="faiss", group="context", node=FaissRetrievalConfig)
+    cs.store(name="bm25", group="context", node=BM25RetrievalConfig)
+    cs.store(name="aider", group="context", node=AiderRepoMapConfig)

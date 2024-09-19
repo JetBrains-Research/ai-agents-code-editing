@@ -1,14 +1,13 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from code_editing.configs.agents.context_providers.context_config import ContextConfig
-from code_editing.configs.agents.graph_config import GraphConfig
-from code_editing.configs.agents.llm_config import ChatLLMConfig
-from code_editing.configs.agents.tools_config import ToolConfig
-from code_editing.configs.data_source_configs import DataSourceConfig
+from code_editing.configs.agents.context_providers.context_config import ContextConfig, setup_context_config
+from code_editing.configs.agents.graph_config import GraphConfig, setup_graph_config
+from code_editing.configs.agents.llm_config import ChatLLMConfig, setup_llm_config
+from code_editing.configs.agents.tools_config import ToolConfig, setup_tools_config
+from code_editing.configs.data_source_configs import DataSourceConfig, setup_data_source_config
 from code_editing.configs.inference_config import InferenceConfig
 
 
@@ -22,5 +21,11 @@ class RunAgentConfig:
     tools: Dict[Any, ToolConfig] = field(default_factory=dict)
 
 
-cs = ConfigStore.instance()
-cs.store(name="base_agent", node=RunAgentConfig)
+def setup_agent_config(cs):
+    setup_context_config(cs)
+    setup_data_source_config(cs)
+    setup_graph_config(cs)
+    setup_llm_config(cs)
+    setup_tools_config(cs)
+
+    cs.store(name="base_agent", node=RunAgentConfig)

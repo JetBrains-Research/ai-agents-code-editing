@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from hydra.core.config_store import ConfigStore
-
 
 @dataclass
 class WandbConfig:
@@ -9,5 +7,5 @@ class WandbConfig:
     enable: bool = False
 
 
-cs = ConfigStore.instance()
-cs.store(name="wandb", node=WandbConfig)
+def setup_wandb_config(cs):
+    cs.store(name="wandb", node=WandbConfig)
