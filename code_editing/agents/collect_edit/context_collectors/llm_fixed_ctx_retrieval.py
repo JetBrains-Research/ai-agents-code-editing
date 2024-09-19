@@ -2,7 +2,7 @@ from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
 from code_editing.agents.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.run import AgentRunManager
 from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.utils.tokenization_utils import TokenizationUtils
 
@@ -10,16 +10,19 @@ from code_editing.utils.tokenization_utils import TokenizationUtils
 class LLMFixedCtxRetrieval(LLMRetrieval):
     name = "llm_fixed_ctx_retrieval"
 
-    def __init__(self, *args, total_context: int = 10000, max_searches=10, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, total_context: int = 10000, max_searches=10, **kwargs):
+        super().__init__(**kwargs)
         self.total_context = total_context
         self.max_searches = max_searches
         self.tok_utils = TokenizationUtils("gpt-3.5-turbo-16k")
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
-        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
+    @property
+    def _runnable(self):
+        # FIXME
+        raise NotImplementedError("This agent was broken by the langgraph refactor")
 
-        agent_executor = self._agent_executor(
+        retrieval_helper = self.get_ctx_provider("retrieval_helper")
+        agent_executor = self.react_agent(
             tools=self.get_llm_retrieval_tools(retrieval_helper),
             # memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="output"),
         )

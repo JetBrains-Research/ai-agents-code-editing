@@ -5,7 +5,7 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
-from code_editing.agents.graph_factory import AgentInput, GraphFactory
+from code_editing.agents.agent_graph import AgentGraph, AgentInput
 from code_editing.agents.utils.user_prompt import PromptWrapper
 
 
@@ -15,7 +15,7 @@ class SelfReflectionState(AgentInput):
     intermediate_steps: list
 
 
-class SelfReflection(GraphFactory):
+class SelfReflection(AgentGraph):
     """
     Langgraph self-reflection system for code editing.
 
@@ -27,14 +27,16 @@ class SelfReflection(GraphFactory):
     def __init__(
         self, agent_prompt: PromptWrapper, agent_review_prompt: PromptWrapper, review_prompt: PromptWrapper, **kwargs
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.agent_prompt = agent_prompt
         self.agent_review_prompt = agent_review_prompt
         self.review_prompt = review_prompt
 
-    def build(self, *args, **kwargs):
+    @property
+    def _runnable(self, *args, **kwargs):
+        raise NotImplementedError()
         memory = InMemoryChatMessageHistory()
-        agent_executor = self._agent_executor(memory=memory)
+        agent_executor = self.agent(memory=memory)
 
         def agent_init_step(inp: AgentInput) -> SelfReflectionState:
             """First agent step (without review)"""

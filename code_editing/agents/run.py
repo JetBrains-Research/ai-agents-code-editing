@@ -1,7 +1,7 @@
 import collections
 import os
 from enum import Enum
-from typing import Dict, Type, TypedDict, Union, TypeVar
+from typing import Dict, Optional, Type, TypedDict, TypeVar, Union
 
 from hydra.core.hydra_config import HydraConfig
 
@@ -24,15 +24,16 @@ class ToolUseStatus(Enum):
     THROWN = "errors"
 
 
-class RunOverviewManager:
+class AgentRunManager:
     def __init__(
         self,
         repo_path: str,
         data_path: str,
         context_providers: Dict[str, ContextProvider],
-        instance_id: str = "???",
+        instance_id: Optional[str] = None,
         raw_data: Dict = None,
     ):
+        instance_id = instance_id or "unknown"
         self.repo_path = repo_path
         self.data_path = data_path
         self.repo = repo_path.split("/")[-1].replace("__", "/")

@@ -6,30 +6,31 @@ from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
 from code_editing.agents.collect_edit.context_collectors.llm_retrieval import LLMRetrieval
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
+from code_editing.agents.run import AgentRunManager
 from code_editing.agents.utils import PromptWrapper
 
 
 class LLMCycleRetrieval(LLMRetrieval):
     name = "llm_cycle_retrieval"
 
-    def __init__(self, review_prompt: PromptWrapper, *args, max_tries: int = 5, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, review_prompt: PromptWrapper, max_tries: int = 5, **kwargs):
+        super().__init__(**kwargs)
         self.review_prompt = review_prompt
         self.max_tries = max_tries
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
-        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
+    @property
+    def _runnable(self):
+        # FIXME
+        raise NotImplementedError("This agent was broken by the langgraph refactor")
+        retrieval_helper = self.get_ctx_provider(RetrievalHelper)
 
-        agent_executor = self._agent_executor(
-            tools=self.get_llm_retrieval_tools(retrieval_helper),
-            memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="output"),
-        )
+        agent = self.react_agent(tools=self.get_llm_retrieval_tools(retrieval_helper))
 
         workflow = StateGraph(dict)
 
         def search(state):
-            out = (self.search_prompt.as_runnable(to_dict=True) | agent_executor).invoke(state)
+            out = (self.search_prompt.as_runnable(to_dict=True) | agent).invoke(state)
             res = state.copy()
             res["intermediate_steps"] = out["intermediate_steps"]
             return res
@@ -49,7 +50,7 @@ class LLMCycleRetrieval(LLMRetrieval):
             inp = state.copy()
             inp["format_instructions"] = output_parser.get_format_instructions()
             is_sufficient = (
-                self.review_prompt.as_runnable(to_dict=True) | agent_executor | itemgetter("output") | output_parser
+                self.review_prompt.as_runnable(to_dict=True) | agent | itemgetter("output") | output_parser
             ).invoke(inp)["is_sufficient"]
             res = state.copy()
             res["is_sufficient"] = is_sufficient

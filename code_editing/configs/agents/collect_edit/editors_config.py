@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 
 from hydra.core.config_store import ConfigStore
-from omegaconf import MISSING
 
+from code_editing.configs.agents import GraphConfig
 from code_editing.configs.agents.user_prompt_config import UserPromptConfig, default_user_prompt
 from code_editing.configs.utils import CE_CLASSES_ROOT_PKG
 
 
 @dataclass
-class EditorConfig:
-    _target_: str = MISSING
+class EditorConfig(GraphConfig):
+    pass
 
 
 @dataclass

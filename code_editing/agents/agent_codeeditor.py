@@ -1,11 +1,11 @@
 import logging
-from typing import Dict
+from typing import Callable, Dict
 
 from hydra.utils import instantiate
 from langchain_core.runnables import RunnableConfig, RunnableLambda
 
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.agent_graph import AgentGraphPartial
+from code_editing.agents.run import AgentRunManager
 from code_editing.agents.utils.checkout_extractor import CheckoutExtractor
 from code_editing.agents.utils.tool_factory import ToolFactory
 from code_editing.code_editor import CEInput, CEOutput, CodeEditor
@@ -17,7 +17,7 @@ from code_editing.utils.git_utils import get_head_diff_unsafe
 class AgentCodeEditor(CodeEditor):
     def __init__(
         self,
-        graph_factory: GraphFactory,
+        agent_graph_partial: AgentGraphPartial,
         tool_factory: ToolFactory,
         data_path: str,
         context_providers_cfg: Dict[str, ContextConfig] = None,
@@ -27,7 +27,7 @@ class AgentCodeEditor(CodeEditor):
             context_providers_cfg = {}
 
         # Agent graph
-        self.graph_factory = graph_factory
+        self.agent_graph_partial = agent_graph_partial
         # Tools and Data
         self.tool_factory = tool_factory
         self.data_path = data_path
@@ -46,7 +46,7 @@ class AgentCodeEditor(CodeEditor):
         # Context providers that help the agent to search for the code
         context_providers = {k: instantiate(v, **generation_kwargs) for k, v in self.context_providers_cfg.items()}
 
-        run_overview_manager = RunOverviewManager(
+        run_manager = AgentRunManager(
             **generation_kwargs,
             context_providers=context_providers,
             instance_id=req.get("instance_id", None),
@@ -55,11 +55,10 @@ class AgentCodeEditor(CodeEditor):
 
         # Tools available to the agent
         tools = self.tool_factory.build(
-            run_overview_manager=run_overview_manager,
+            run_manager=run_manager,
         )
 
-        # Build the graph runnable
-        app = self.graph_factory.tools(tools).build(run_overview_manager=run_overview_manager)
+        app = self.agent_graph_partial(tools=tools, run_manager=run_manager)
 
         # Diff collection
         def to_ceoutput(state):
@@ -69,23 +68,22 @@ class AgentCodeEditor(CodeEditor):
             if viewed_lines is None:
                 logging.warning("No viewed lines found in the graph output")
                 viewed_lines = {}
-            return {"prediction": diff, "viewed_lines": viewed_lines, "run": run_overview_manager.get_run_summary()}
+            return {
+                "raw": state,
+                "prediction": diff,
+                "viewed_lines": viewed_lines,
+                "run": run_manager.get_run_summary(),
+            }
 
         # update runnable config
         runnable_config = self.runnable_config.copy()
-        runnable_config["run_name"] = f"{runnable_config['run_name']}.{run_overview_manager.instance_id}"
+        runnable_config["run_name"] = f"{runnable_config['run_name']}.{run_manager.instance_id}"
         runnable_config.setdefault("callbacks", [])
-        runnable_config["callbacks"].append(MyFileCallbackHandler(run_overview_manager.get_log_path()))
+        # noinspection PyTypeChecker
+        runnable_config["callbacks"].append(MyFileCallbackHandler(run_manager.get_log_path()))
 
         # Invoke the graph
         return (app | RunnableLambda(to_ceoutput, name="Collect Diff")).invoke(
             input={"instruction": req["instruction"]},
             config=runnable_config,
         )
-
-    @property
-    def metadata(self) -> dict:
-        return {
-            "type": "agent",
-            "graph_factory": self.graph_factory.name,
-        }

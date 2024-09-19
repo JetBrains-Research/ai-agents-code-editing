@@ -20,8 +20,7 @@ class CodeSearchTool(CEBaseTool):
         self.counter = 0
         self.do_add_to_viewed = do_add_to_viewed
 
-        # noinspection PyTypeChecker
-        self.retrieval_helper = self.run_overview_manager.get_ctx_provider("retrieval_helper")
+        self.retrieval_helper = self.get_ctx_provider(RetrievalHelper)
 
     class CodeSearchToolInput(BaseModel):
         query: str = Field(

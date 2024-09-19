@@ -8,11 +8,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import coolname
 import omegaconf
 import pandas as pd
+import wandb
 from hydra.core.hydra_config import HydraConfig
 from langchain_community.callbacks import get_openai_callback
 from tqdm import tqdm
 
-import wandb
 from code_editing.code_editor import CodeEditor
 from code_editing.configs.inference_config import InferenceConfig
 from code_editing.data_sources.base_source import CEDataSource

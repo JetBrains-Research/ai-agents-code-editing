@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, TypedDict
 
+from typing_extensions import NotRequired  # we use python 3.10
+
 
 class CEInput(TypedDict):
     """This is a TypedDict class that represents the input to the code editor"""
 
     instruction: str
     code_base: Dict[str, str]
+    instance_id: NotRequired[str]
+    raw_data: NotRequired[Dict]
 
 
 class BackBoneOutput(TypedDict):

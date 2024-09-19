@@ -5,13 +5,13 @@ import jedi
 from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import OutputFixingParser
 from langchain_core.exceptions import OutputParserException
-from langchain_core.runnables import RunnableLambda, RunnableSequence
+from langchain_core.runnables import Runnable, RunnableLambda, RunnableSequence
 from langgraph.graph import END, StateGraph
 
+from code_editing.agents.agent_graph import AgentGraph
 from code_editing.agents.collect_edit.collect_edit import CollectEditState
 from code_editing.agents.collect_edit.editors.util import MarkdownOutputParser, process_edit
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.run import AgentRunManager
 from code_editing.agents.tools.common import parse_file, write_file_full
 from code_editing.agents.utils import PromptWrapper
 
@@ -20,15 +20,18 @@ class EditorState(CollectEditState):
     edited_files: List[str]
 
 
-class SimpleEditor(GraphFactory):
-    def __init__(self, edit_prompt: PromptWrapper):
-        super().__init__()
+class SimpleEditor(AgentGraph):
+    def __init__(self, edit_prompt: PromptWrapper, **kwargs):
+        super().__init__(**kwargs)
         self.edit_prompt = edit_prompt
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
+    @property
+    def _runnable(self) -> Runnable:
+        # FIXME
+        raise NotImplementedError("This agent was broken by the langgraph refactor")
         workflow = StateGraph(EditorState)
 
-        agent_executor = self._agent_executor(
+        agent_executor = self.react_agent(
             memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="output"),
             tools=[],
         )
@@ -66,7 +69,7 @@ class SimpleEditor(GraphFactory):
                         pass
                 raise OutputParserException("Failed to edit the code")
 
-            file = parse_file(file_name, run_overview_manager.repo_path)
+            file = parse_file(file_name, self.run_manager.repo_path)
             new_code = process_edit(file, lines, edit_lambda)
 
             # Check linter

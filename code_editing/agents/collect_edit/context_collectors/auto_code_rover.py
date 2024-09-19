@@ -11,10 +11,10 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableLambda
 from langgraph.graph import END, StateGraph
 
+from code_editing.agents.agent_graph import AgentGraph
 from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
 from code_editing.agents.context_providers.acr_search.search_utils import to_relative_path
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager, ToolUseStatus
+from code_editing.agents.run import ToolUseStatus
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
 You are working on an issue submitted to your project.
@@ -153,12 +153,11 @@ def remove_unwanted_lines(text: str, word: str) -> str:
     return "\n".join([e for e in text.split("\n") if word not in e])
 
 
-class ACRRetrieval(GraphFactory):
+class ACRRetrieval(AgentGraph):
     name = "acr_retrieval"
 
-    def __init__(self, *args, max_tries: int = 5, use_show_definition: bool = False, **kwargs):
-        # super().__init__(*args, **kwargs)
-        super().__init__()
+    def __init__(self, max_tries: int = 5, use_show_definition: bool = False, **kwargs):
+        super().__init__(**kwargs)
         self.max_tries = max_tries
         self.prompt = prompt
         self.proxy_prompt = PROXY_PROMPT
@@ -170,7 +169,7 @@ class ACRRetrieval(GraphFactory):
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(self.proxy_prompt)]
         messages.append(HumanMessage(text))
-        llm: BaseChatModel = self._llm
+        llm: BaseChatModel = self.llm
         parser = JsonOutputParser()
 
         for i in range(self.max_tries):
@@ -187,12 +186,14 @@ class ACRRetrieval(GraphFactory):
         logging.warning("Failed to get a valid response after max tries.")
         return None
 
-    def build(self, *args, run_overview_manager: RunOverviewManager, **kwargs):
+    @property
+    def _runnable(self):
         # noinspection PyTypeChecker
-        search_manager: SearchManager = run_overview_manager.get_ctx_provider("search_manager")
+        search_manager: SearchManager = self.get_ctx_provider("search_manager")
 
         workflow = StateGraph(dict)
-        llm: BaseChatModel = self._llm
+        llm = self.llm
+        run_manager = self.run_manager
         search_text = self.prompt
 
         iters = 0
@@ -216,7 +217,7 @@ class ACRRetrieval(GraphFactory):
                     "    - do we need more context: construct search API calls to get more context of the project. (leave it empty if you don't need more context)\n"
                     "    - where are bug locations: buggy files and methods. (leave it empty if you don't have enough information)"
                 )
-                res = llm.invoke(messages)
+                res = self.llm.invoke(messages)
                 messages.append(res)
                 output = self.proxy_run(res.content)
                 if output is None:
@@ -250,7 +251,7 @@ class ACRRetrieval(GraphFactory):
                 return state
 
         def do_search(state):
-            nonlocal messages, llm, run_overview_manager
+            nonlocal messages, llm, run_manager
             api_calls = state["api_calls"]
             if api_calls:
                 tool_output = ""
@@ -259,14 +260,14 @@ class ACRRetrieval(GraphFactory):
                         func_name, func_args = parse_function_invocation(api_call)
                         function = getattr(search_manager, func_name)
                         try:
-                            run_overview_manager.log_tool_use(func_name, ToolUseStatus.CALL)
+                            run_manager.log_tool_use(func_name, ToolUseStatus.CALL)
                             res, summary, ok = function(*func_args)
                             if ok:
-                                run_overview_manager.log_tool_use(func_name, ToolUseStatus.OK)
+                                run_manager.log_tool_use(func_name, ToolUseStatus.OK)
                             else:
-                                run_overview_manager.log_tool_use(func_name, ToolUseStatus.FAIL)
+                                run_manager.log_tool_use(func_name, ToolUseStatus.FAIL)
                         except Exception:
-                            run_overview_manager.log_tool_use(func_name, ToolUseStatus.THROWN)
+                            run_manager.log_tool_use(func_name, ToolUseStatus.THROWN)
                             raise
                         tool_output += f"Result of {func_name}({', '.join(func_args)}):\n{res}\n"
                     except Exception as e:
@@ -299,7 +300,7 @@ class ACRRetrieval(GraphFactory):
             segments = search_manager.viewed_lines
             ctx = {}
             for file_name, st, end in segments:
-                fname = to_relative_path(file_name, run_overview_manager.repo_path).replace("\\", "/")
+                fname = to_relative_path(file_name, self.run_manager.repo_path).replace("\\", "/")
                 ctx.setdefault(fname, set()).update(range(st, end + 1))
             return {"collected_context": ctx}
 

@@ -2,6 +2,7 @@ from typing import Any, Callable, Optional, Type
 
 from pydantic import BaseModel, Field
 
+from code_editing.agents.context_providers.acr_search import SearchManager
 from code_editing.agents.tools.base_tool import CEBaseTool
 
 
@@ -12,7 +13,7 @@ def class_for_acr(_name: str, _description: str, _args_schema: Type[BaseModel], 
             self.args_schema = _args_schema
             if self.dry_run:
                 return
-            self.search_manager = self.run_overview_manager.get_ctx_provider("search_manager")
+            self.search_manager = self.get_ctx_provider(SearchManager)
 
         name = _name
         description = _description
@@ -25,7 +26,7 @@ def class_for_acr(_name: str, _description: str, _args_schema: Type[BaseModel], 
         def short_name(self) -> Optional[str]:
             return "acr"
 
-        search_manager: Any = None
+        search_manager: SearchManager = None
 
     return ACRTool
 

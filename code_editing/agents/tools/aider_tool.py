@@ -15,8 +15,7 @@ class RepoMapTool(CEBaseTool):
         self.args_schema = self.RepoMapToolInput
         if self.dry_run:
             return
-        # noinspection PyTypeChecker
-        self.aider: AiderRepoMap = self.run_overview_manager.get_ctx_provider("aider")
+        self.aider = self.get_ctx_provider(AiderRepoMap)
 
     name = "repo-map"
     description = "Use this tool to show the structure of the repository: files, classes, methods, etc."
@@ -25,4 +24,4 @@ class RepoMapTool(CEBaseTool):
     def _run_tool(self, *args, **kwargs) -> str:
         return self.aider.get_repo_map()
 
-    aider: Any = None
+    aider: AiderRepoMap = None

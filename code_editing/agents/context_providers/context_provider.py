@@ -1,7 +1,5 @@
 from abc import ABC, ABCMeta, abstractmethod
 
-from code_editing import CodeEditor
-
 
 class ContextProvider(ABC):
     __metaclass__ = ABCMeta

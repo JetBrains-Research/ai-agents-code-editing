@@ -8,12 +8,11 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableLambda
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
+from code_editing.agents.agent_graph import AgentGraph
 from code_editing.agents.context_providers.acr_search.search_manage import SearchManager
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.context_providers.retrieval.retrieval_helper import RetrievalHelper
 from code_editing.agents.tools.common import lines_format_document
 
 SYSTEM_PROMPT = """You are a software developer maintaining a large project.
@@ -144,18 +143,18 @@ class RetrievalSearchManager:
         return f"{len(docs)} results found:\n{res}"
 
 
-class MyACRRetrieval(GraphFactory):
+class MyACRRetrieval(AgentGraph):
     name = "my_acr_retrieval"
 
-    def __init__(self, *args, max_tries: int = 5, max_iters: int = 15, **kwargs):
-        super().__init__()
+    def __init__(self, max_tries: int = 5, max_iters: int = 15, **kwargs):
+        super().__init__(**kwargs)
         self.max_tries = max_tries
         self.max_iters = max_iters
 
     def proxy_run(self, text: str) -> Optional[dict]:
         messages = [SystemMessage(PROXY_PROMPT)]
         messages.append(HumanMessage(text))
-        llm: BaseChatModel = self._llm
+        llm: BaseChatModel = self.llm
         parser = JsonOutputParser()
 
         for i in range(self.max_tries):
@@ -172,12 +171,15 @@ class MyACRRetrieval(GraphFactory):
         logging.warning("Failed to get a valid response after max tries.")
         return None
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
-        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
-
+    @property
+    def _runnable(self):
+        retrieval_helper = self.get_ctx_provider(RetrievalHelper)
         search_manager = RetrievalSearchManager(retrieval_helper)
+        run_manager = self.run_manager
+
         workflow = StateGraph(dict)
-        llm: BaseChatModel = self._llm
+        llm: BaseChatModel = self.llm
+
         search_text = prompt
 
         iters = 0
@@ -218,7 +220,7 @@ class MyACRRetrieval(GraphFactory):
             raise ValueError("Failed to get a valid response after max tries.")
 
         def do_search(state, run_manager=None):
-            nonlocal messages, llm
+            nonlocal messages, llm, search_manager
             api_calls = state["api_calls"]
             if api_calls:
                 tool_output = ""

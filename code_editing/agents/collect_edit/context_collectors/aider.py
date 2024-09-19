@@ -4,26 +4,25 @@ from operator import itemgetter
 
 from langchain_core.runnables import RunnableLambda
 
+from code_editing.agents.agent_graph import AgentGraph
 from code_editing.agents.collect_edit.editors.util import TagParser
 from code_editing.agents.context_providers.aider import AiderRepoMap
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
 from code_editing.agents.tools.common import read_file_full
 from code_editing.agents.utils import PromptWrapper
 
 logger = logging.getLogger(__name__)
 
 
-class AiderRetrieval(GraphFactory):
+class AiderRetrieval(AgentGraph):
     name = "aider_retrieval"
 
     def __init__(self, select_prompt: PromptWrapper, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.select_prompt = select_prompt
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
-        # noinspection PyTypeChecker
-        aider: AiderRepoMap = run_overview_manager.get_ctx_provider("aider")
+    @property
+    def _runnable(self):
+        aider = self.get_ctx_provider(AiderRepoMap)
         repo_map = aider.get_repo_map()
 
         def to_viewed_lines(state: dict):
@@ -41,7 +40,7 @@ class AiderRetrieval(GraphFactory):
         return (
             {"repo_map": lambda _: repo_map, "instruction": itemgetter("instruction")}
             | self.select_prompt.as_runnable()
-            | self._llm
+            | self.llm
             | TagParser(tag="file")
             | RunnableLambda(to_viewed_lines, name="Convert to viewed lines")
         )

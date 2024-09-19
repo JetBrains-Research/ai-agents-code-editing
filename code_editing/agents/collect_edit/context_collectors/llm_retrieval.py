@@ -1,31 +1,32 @@
 from langchain_core.tools import ToolException, tool
 
-from code_editing.agents.graph_factory import GraphFactory
-from code_editing.agents.run import RunOverviewManager
+from code_editing.agents.agent_graph import AgentGraph
+from code_editing.agents.run import AgentRunManager
 from code_editing.agents.tools.common import parse_file, read_file_full
 from code_editing.agents.utils import PromptWrapper
 
 
-class LLMRetrieval(GraphFactory):
+class LLMRetrieval(AgentGraph):
     name = "llm_retrieval"
 
     def __init__(self, search_prompt: PromptWrapper, do_review: bool = True, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.search_prompt = search_prompt
         self.do_review = do_review
 
-    def build(self, run_overview_manager: RunOverviewManager, *args, **kwargs):
-        retrieval_helper = run_overview_manager.get_ctx_provider("retrieval_helper")
+    @property
+    def _runnable(self):
+        retrieval_helper = self.get_ctx_provider("retrieval_helper")
 
         return (
             self.search_prompt.as_runnable(to_dict=True)
-            | self._agent_executor(tools=self.get_llm_retrieval_tools(retrieval_helper))
+            | self.react_agent(tools=self.get_llm_retrieval_tools(retrieval_helper))
             | {"collected_context": lambda _: retrieval_helper.viewed_lines}
         )
 
     def get_llm_retrieval_tools(self, retrieval_helper):
         # Find the code search tool
-        search_tools = [t for t in self._tools if "search" in t.name]
+        search_tools = [t for t in self.tools if "search" in t.name]
 
         @tool
         def add_to_context(file_name: str, start_line: int, end_line: int):

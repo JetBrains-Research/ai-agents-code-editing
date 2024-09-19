@@ -6,11 +6,10 @@ import dotenv
 import hydra
 import omegaconf
 import pandas as pd
+import wandb
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from tqdm import tqdm
-
-import wandb
 
 dotenv.load_dotenv()
 

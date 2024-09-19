@@ -5,7 +5,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import Runnable, RunnableLambda
 
 
-class PromptWrapper:
+class PromptWrapper(Runnable):
     """Utility class for creating a prompt template from a string, file or langsmith."""
 
     def __init__(
@@ -37,5 +37,8 @@ class PromptWrapper:
         if to_dict:
             res = res | self.str_to_dict
         return res
+
+    def invoke(self, *args, **kwargs) -> Any:
+        return self.prompt_template.invoke(*args, **kwargs)
 
     str_to_dict = RunnableLambda(lambda x: {"input": x.text})
