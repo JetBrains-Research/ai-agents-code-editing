@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ai-agents-code-editing"
-version = "0.1.6"
+version = "0.1.7"
 description = "AI agents for Code Editing"
 authors = ["Alexander Kovrigin <alexander.kovrigin@jetbrains.com>"]
 readme = "README.md"

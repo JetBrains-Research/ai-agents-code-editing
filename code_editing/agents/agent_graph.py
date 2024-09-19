@@ -51,6 +51,11 @@ class AgentGraph(Runnable, ABC):
             self.__cached_runnable = self._runnable
         return self.__cached_runnable.invoke(*args, **kwargs)
 
+    async def ainvoke(self, *args, **kwargs):
+        if self.__cached_runnable is None or not self.do_cache:
+            self.__cached_runnable = self._runnable
+        return await self.__cached_runnable.ainvoke(*args, **kwargs)
+
     @property
     def root_params(self):
         return {"tools": self.tools, "llm": self.llm, "run_manager": self.run_manager, "do_cache": self.do_cache}
